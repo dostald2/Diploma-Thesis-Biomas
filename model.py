@@ -8,6 +8,11 @@ from streamlit_folium import st_folium
 import folium
 import requests
 from scipy.stats import norm
+try:
+    from bpej_lookup import get_fertility_from_coords, format_bpej_info
+    BPEJ_AVAILABLE = True
+except ImportError:
+    BPEJ_AVAILABLE = False
 
 # ===========================================================================
 # NAČTENÍ PŘEKLADŮ Z JSON
@@ -258,14 +263,147 @@ def render_recap_table(summary_data: list, T: dict) -> str:
 """
 
 
+
+# ===========================================================================
+# VSTUPNI TABULKA NAKLADU - centralovana, bez AG Grid
+# ===========================================================================
+def render_cost_inputs(crop_key, T, widget_key_prefix):
+    cost_keys_map = T["cost_keys"]
+    col_label     = T["cost_col_label"]
+    defaults      = DEFAULT_COSTS[crop_key]
+
+    header = (
+        "<div style='display:grid;grid-template-columns:1fr 1fr;"
+        "background:#1e3a5f;border-radius:6px 6px 0 0;'>"
+        "<div style='color:#fff;font-weight:600;padding:10px 16px;text-align:center;'>"
+        "Parametr</div>"
+        "<div style='color:#fff;font-weight:600;padding:10px 16px;text-align:center;"
+        "border-left:1px solid #2d5282;'>"
+        + col_label +
+        "</div></div>"
+    )
+    st.markdown(header, unsafe_allow_html=True)
+
+    result = {}
+    for i, (internal_key, display_label) in enumerate(cost_keys_map.items()):
+        default_val = defaults[internal_key]
+        bg = "#f4f7fb" if i % 2 == 0 else "#ffffff"
+        row_l, row_r = st.columns([1, 1])
+        with row_l:
+            cell_html = (
+                "<div style='background:" + bg + ";padding:8px 16px;"
+                "text-align:center;border-bottom:1px solid #dde3ec;"
+                "min-height:50px;display:flex;align-items:center;"
+                "justify-content:center;'><b>" + display_label + "</b></div>"
+            )
+            st.markdown(cell_html, unsafe_allow_html=True)
+        with row_r:
+            is_ratio = internal_key == "riziko_fail"
+            is_int   = internal_key == "zivotnost"
+            step_val = 0.01 if is_ratio else (1.0 if is_int else 10.0)
+            fmt      = "%.2f" if is_ratio else "%.0f"
+            val = st.number_input(
+                label=display_label,
+                value=float(default_val),
+                min_value=0.0,
+                step=step_val,
+                format=fmt,
+                key=widget_key_prefix + "_" + internal_key,
+                label_visibility="collapsed",
+            )
+            result[internal_key] = val
+
+    st.markdown(
+        "<div style='border-bottom:2px solid #1e3a5f;"
+        "border-radius:0 0 6px 6px;margin-bottom:8px;'></div>",
+        unsafe_allow_html=True,
+    )
+    return result
+
+
 # ===========================================================================
 # GLOBÁLNÍ CSS
 # ===========================================================================
 GLOBAL_CSS = """
 <style>
-.block-container { padding-top: 0.8rem !important; }
+.block-container { padding-top: 2.5rem !important; }
+
+/* Tlačítka vlajek – menší, bez nadbytečného odsazení */
+[data-testid="stButton"] button {
+    font-size: 1.5rem !important;
+    padding: 2px 8px !important;
+    min-width: 0 !important;
+    line-height: 1.3 !important;
+    border-radius: 6px !important;
+}
+
+/* Tlačítka v col_flag vedle sebe přes flex */
+[data-testid="column"]:last-child [data-testid="stVerticalBlock"] {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    padding-top: 22px !important;
+}
+
+/* ---- Centrování st.data_editor (AG Grid) ---- */
+.ag-header-cell-label { justify-content: center !important; }
+.ag-header-cell-text  { text-align: center !important; }
+.ag-cell {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+.ag-cell-value { width: 100% !important; text-align: center !important; }
+.ag-cell input,
+.ag-cell .ag-input-field-input { text-align: center !important; }
 </style>
 """
+
+
+# ---------------------------------------------------------------------------
+# BPEJ TEXTY (přidány inline – nejsou v JSON kvůli dynamickému obsahu)
+# ---------------------------------------------------------------------------
+BPEJ_STRINGS = {
+    "cs": {
+        "bpej_spinner":     "Stahuji data o bonitě půdy (BPEJ)...",
+        "bpej_success":     "🌱 Bonita půdy automaticky určena z BPEJ",
+        "bpej_outside":     "📍 Souřadnice je mimo ČR – kvalitu půdy vyberte ručně.",
+        "bpej_nodata":      "⚠️ BPEJ data nenalezena (nezem. půda?) – vyberte ručně.",
+        "bpej_error":       "⚠️ BPEJ nelze načíst ({err}) – vyberte ručně.",
+        "bpej_unavailable": "ℹ️ Modul bpej_lookup není dostupný – vyberte ručně.",
+        "bpej_metric_label": "Bonita půdy (BPEJ)",
+        "bpej_metric_na":    "Mimo ČR",
+        "bpej_metric_noag":  "Nezem. půda",
+        "bpej_metric_err":   "Nedostupné",
+        "bpej_metric_cap_ok":  "Automaticky z BPEJ/VÚMOP",
+        "bpej_metric_cap_out": "Bod mimo ČR – vyberte ručně",
+        "bpej_metric_cap_no":  "Nezem. půda – vyberte ručně",
+        "bpej_metric_cap_err": "Chyba načítání – vyberte ručně",
+        "climate_zone_label":  "Klimatické pásmo",
+        "climate_zone_cap":    "Automaticky dle GPS a klimatických dat",
+    },
+    "en": {
+        "bpej_spinner":     "Downloading soil quality data (BPEJ)...",
+        "bpej_success":     "🌱 Soil fertility automatically determined from BPEJ",
+        "bpej_outside":     "📍 Coordinate is outside CZ – please select soil quality manually.",
+        "bpej_nodata":      "⚠️ No BPEJ data found (non-agricultural land?) – select manually.",
+        "bpej_error":       "⚠️ BPEJ unavailable ({err}) – select manually.",
+        "bpej_unavailable": "ℹ️ bpej_lookup module not available – select manually.",
+        "bpej_metric_label": "Soil quality (BPEJ)",
+        "bpej_metric_na":    "Outside CZ",
+        "bpej_metric_noag":  "Non-agric.",
+        "bpej_metric_err":   "Unavailable",
+        "bpej_metric_cap_ok":  "Auto-detected from BPEJ/VÚMOP",
+        "bpej_metric_cap_out": "Outside CZ – select manually",
+        "bpej_metric_cap_no":  "Non-agric. land – select manually",
+        "bpej_metric_cap_err": "Load error – select manually",
+        "climate_zone_label":  "Climate Zone",
+        "climate_zone_cap":    "Auto-detected from GPS and climate data",
+    },
+}
 
 # ===========================================================================
 # SESSION STATE – jazyk
@@ -284,31 +422,24 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 # ===========================================================================
 T = LANG[st.session_state["lang"]]
 
-col_ttl, _, col_flag = st.columns([7, 1, 2])
+col_ttl, col_flag = st.columns([8, 1])
 
 with col_ttl:
     st.title(T["app_title"])
     st.markdown(T["app_subtitle"])
 
 with col_flag:
-    # Vycentruj vlajky doprava a dolů k nadpisu
-    st.markdown("<div style='padding-top:28px;display:flex;justify-content:flex-end;gap:8px;'>",
-                unsafe_allow_html=True)
-    fc1, fc2 = st.columns(2)
-    with fc1:
-        cs_active = st.session_state["lang"] == "cs"
-        if st.button("🇨🇿", key="btn_cs",
-                     help="Čeština",
-                     type="primary" if cs_active else "secondary"):
-            st.session_state["lang"] = "cs"
-            st.rerun()
-    with fc2:
-        en_active = st.session_state["lang"] == "en"
-        if st.button("🇬🇧", key="btn_en",
-                     help="English",
-                     type="primary" if en_active else "secondary"):
-            st.session_state["lang"] = "en"
-            st.rerun()
+    st.markdown("<div style='display:flex;flex-direction:row;justify-content:flex-end;align-items:center;gap:4px;padding-top:22px;'>", unsafe_allow_html=True)
+    cs_active = st.session_state["lang"] == "cs"
+    en_active = st.session_state["lang"] == "en"
+    if st.button("🇨🇿", key="btn_cs", help="Čeština",
+                 type="primary" if cs_active else "secondary"):
+        st.session_state["lang"] = "cs"
+        st.rerun()
+    if st.button("🇬🇧", key="btn_en", help="English",
+                 type="primary" if en_active else "secondary"):
+        st.session_state["lang"] = "en"
+        st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
 # Přegeneruj T po možném rerun
@@ -322,31 +453,101 @@ st.markdown("---")
 st.header(T["sec1_header"])
 st.markdown(T["sec1_desc"])
 
-fmap = folium.Map(location=[49.8, 15.5], zoom_start=4)
+fmap = folium.Map(location=[49.8, 15.5], zoom_start=8)
 fmap.add_child(folium.LatLngPopup())
 map_data = st_folium(fmap, height=600, use_container_width=True)
 
 detected_zone_key = "Střední Evropa / Mírné pásmo"
 real_rain, real_temp = 600.0, 10.0
 
+# Uchováme BPEJ výsledek v session_state aby přežil rerun
+if "bpej_result"      not in st.session_state: st.session_state["bpej_result"] = None
+if "bpej_soil_key"    not in st.session_state: st.session_state["bpej_soil_key"] = None
+if "last_clicked_pos" not in st.session_state: st.session_state["last_clicked_pos"] = None
+
+BS = BPEJ_STRINGS[st.session_state["lang"]]
+
 if map_data and map_data.get("last_clicked"):
     lat = map_data["last_clicked"]["lat"]
     lon = map_data["last_clicked"]["lng"]
+    current_pos = (round(lat, 5), round(lon, 5))
+
+    # Spusť lookup jen při nové souřadnici
+    if current_pos != st.session_state["last_clicked_pos"]:
+        st.session_state["last_clicked_pos"] = current_pos
+        st.session_state["bpej_result"]      = None
+        st.session_state["bpej_soil_key"]    = None
+
     st.success(f"{T['coord_success']} {lat:.4f}, {lon:.4f}")
+
+    # Klima data
     with st.spinner(T["spinner_climate"]):
         tv, rv = get_climate_data(lat, lon)
         if tv is not None:
             real_temp, real_rain = tv, rv
             detected_zone_key = determine_zone(lat, real_temp, real_rain)
 
+    # BPEJ lookup (jen pokud ještě nemáme výsledek pro tuto souřadnici)
+    if st.session_state["bpej_result"] is None:
+        if BPEJ_AVAILABLE:
+            with st.spinner(BS["bpej_spinner"]):
+                bpej_res = get_fertility_from_coords(lat, lon)
+                st.session_state["bpej_result"] = bpej_res
+                if bpej_res["fertility"] is not None:
+                    st.session_state["bpej_soil_key"] = bpej_res["fertility"]
+        else:
+            st.session_state["bpej_result"] = {"source": "unavailable", "fertility": None, "error": None, "bpej_code": None, "bpej_decoded": None}
+
 detected_zone_label = T["zones"][detected_zone_key]
 
-ci1, ci2, ci3 = st.columns(3)
+# Připrav BPEJ metriku
+bpej_res     = st.session_state.get("bpej_result")
+lang_code    = st.session_state["lang"]
+bpej_src     = bpej_res.get("source") if bpej_res else None
+bpej_fert    = bpej_res.get("fertility") if bpej_res else None
+bpej_code    = bpej_res.get("bpej_code") if bpej_res else None
+
+if bpej_src == "BPEJ/vumop" and bpej_fert:
+    bpej_fmt     = f"{bpej_code[0]}.{bpej_code[1:3]}.{bpej_code[3:]}" if bpej_code else ""
+    bpej_value   = f"{bpej_fert}  ({bpej_fmt})" if bpej_fmt else bpej_fert
+    bpej_caption = BS["bpej_metric_cap_ok"]
+    bpej_delta   = None
+elif bpej_src == "mimo_CR":
+    bpej_value   = BS["bpej_metric_na"]
+    bpej_caption = BS["bpej_metric_cap_out"]
+    bpej_delta   = None
+elif bpej_src == "chyba":
+    err_msg = (bpej_res.get("error") or "")
+    # Rozliš nezem. půdu od technické chyby
+    if "nezem" in err_msg.lower() or "nenalezeno" in err_msg.lower():
+        bpej_value   = BS["bpej_metric_noag"]
+        bpej_caption = BS["bpej_metric_cap_no"]
+    else:
+        bpej_value   = BS["bpej_metric_err"]
+        bpej_caption = BS["bpej_metric_cap_err"]
+    bpej_delta   = None
+else:
+    # Ještě nenačteno (před prvním kliknutím)
+    bpej_value   = "—"
+    bpej_caption = "Klikněte do mapy" if lang_code == "cs" else "Click on the map"
+    bpej_delta   = None
+
+# 4 metriky v řadě – stejný formát pro všechny
+ci1, ci2, ci3, ci4 = st.columns(4)
 ci1.metric(T["metric_temp"], f"{real_temp:.1f} °C")
 ci1.caption(T["metric_temp_cap"])
 ci2.metric(T["metric_rain"], f"{real_rain:.0f} mm")
 ci2.caption(T["metric_rain_cap"])
-ci3.info(f"{T['climate_zone']}: **{detected_zone_label}**")
+ci3.markdown(f"""
+<div style="font-size:12px;color:#888;font-weight:400;margin-bottom:2px">{BS["climate_zone_label"]}</div>
+<div style="font-size:16px;font-weight:600;line-height:1.3">{detected_zone_label}</div>
+<div style="font-size:12px;color:#aaa;margin-top:3px">{BS["climate_zone_cap"]}</div>
+""", unsafe_allow_html=True)
+ci4.markdown(f"""
+<div style="font-size:12px;color:#888;font-weight:400;margin-bottom:2px">{BS["bpej_metric_label"]}</div>
+<div style="font-size:16px;font-weight:600;line-height:1.3">{bpej_value}</div>
+<div style="font-size:12px;color:#aaa;margin-top:3px">{bpej_caption}</div>
+""", unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -357,8 +558,14 @@ st.header(T["sec2_header"])
 
 cp1, cp2 = st.columns(2)
 with cp1:
+    # Výchozí index – buď z BPEJ auto-detekce, nebo 1 (Úrodná)
+    _bpej_key = st.session_state.get("bpej_soil_key")
+    _default_soil_idx = (SOIL_KEYS.index(_bpej_key)
+                         if _bpej_key and _bpej_key in SOIL_KEYS else 1)
+
     soil_idx  = st.selectbox(T["soil_quality"], range(3),
-                              format_func=lambda i: T["soil_opts"][i])
+                              format_func=lambda i: T["soil_opts"][i],
+                              index=_default_soil_idx)
     soil_key  = SOIL_KEYS[soil_idx]
     plocha_ha = st.number_input(T["area_label"], min_value=1.0, value=10.0, step=1.0)
 
