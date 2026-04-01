@@ -33,7 +33,7 @@ ZONE_KEYS = [
     "Severní Evropa / Chladné pásmo",
     "Suché / Marginální půdy",
 ]
-SOIL_KEYS = ["Velmi úrodná", "Úrodná", "Neúrodná"]
+SOIL_KEYS = ["Optimální", "Průměrná", "Neúrodná", "Nevhodná"]
 
 # ===========================================================================
 # DATA
@@ -42,40 +42,48 @@ DEFAULT_COSTS = {
     "Miscanthus": {
         "zalozeni": 2575, "sadba_podil": 2075, "udrzba": 189,
         "sklizen_per_tuna": 25, "prodejni_cena_start": 80,
-        "riziko_fail": 0.20, "zivotnost": 20,
+        "riziko_fail": 0.05, "zivotnost": 25,
     },
     "SRC Vrba": {
         "zalozeni": 2600, "sadba_podil": 1800, "udrzba": 475,
         "sklizen_per_tuna": 36, "prodejni_cena_start": 75,
-        "riziko_fail": 0.20, "zivotnost": 24,
+        "riziko_fail": 0.05, "zivotnost": 30,
     },
 }
 
+# Výnosové rozsahy [min, max] t/ha sušiny dle vědců (2025)
+# Kategorie půdy: Optimální / Průměrná / Neúrodná / Nevhodná
+# Nevhodná: 0–4 t/ha (obě plodiny), Neúrodná: 4–7, Průměrná: Misc 7–14 / SRC 7–12, Optimální: Misc 14–16 / SRC 12–15
 YIELD_DATA = {
     "Tropické a Subtropické": {
-        "Velmi úrodná": {"M_giganteus": [28, 46], "SRC": [12, 20]},
-        "Úrodná":       {"M_giganteus": [24, 38], "SRC": [11, 17]},
-        "Neúrodná":     {"M_giganteus": [18, 30], "SRC": [8,  14]},
+        "Optimální": {"M_giganteus": [14, 16], "SRC": [12, 15]},
+        "Průměrná":  {"M_giganteus": [7,  14], "SRC": [7,  12]},
+        "Neúrodná":  {"M_giganteus": [4,   7], "SRC": [4,   7]},
+        "Nevhodná":  {"M_giganteus": [0,   4], "SRC": [0,   4]},
     },
     "Jižní Evropa / Středomoří": {
-        "Velmi úrodná": {"M_giganteus": [15, 24], "SRC": [10, 11]},
-        "Úrodná":       {"M_giganteus": [12, 18], "SRC": [8,  10]},
-        "Neúrodná":     {"M_giganteus": [5,  10], "SRC": [5,   9]},
+        "Optimální": {"M_giganteus": [14, 16], "SRC": [12, 15]},
+        "Průměrná":  {"M_giganteus": [7,  14], "SRC": [7,  12]},
+        "Neúrodná":  {"M_giganteus": [4,   7], "SRC": [4,   7]},
+        "Nevhodná":  {"M_giganteus": [0,   4], "SRC": [0,   4]},
     },
     "Střední Evropa / Mírné pásmo": {
-        "Velmi úrodná": {"M_giganteus": [10, 18], "SRC": [8, 12]},
-        "Úrodná":       {"M_giganteus": [9,  14], "SRC": [7, 10]},
-        "Neúrodná":     {"M_giganteus": [4,   7], "SRC": [5,  9]},
+        "Optimální": {"M_giganteus": [14, 16], "SRC": [12, 15]},
+        "Průměrná":  {"M_giganteus": [7,  14], "SRC": [7,  12]},
+        "Neúrodná":  {"M_giganteus": [4,   7], "SRC": [4,   7]},
+        "Nevhodná":  {"M_giganteus": [0,   4], "SRC": [0,   4]},
     },
     "Severní Evropa / Chladné pásmo": {
-        "Velmi úrodná": {"M_giganteus": [5, 10], "SRC": [7, 10]},
-        "Úrodná":       {"M_giganteus": [4,  8], "SRC": [6,  9]},
-        "Neúrodná":     {"M_giganteus": [3,  6], "SRC": [4,  7]},
+        "Optimální": {"M_giganteus": [14, 16], "SRC": [12, 15]},
+        "Průměrná":  {"M_giganteus": [7,  14], "SRC": [7,  12]},
+        "Neúrodná":  {"M_giganteus": [4,   7], "SRC": [4,   7]},
+        "Nevhodná":  {"M_giganteus": [0,   4], "SRC": [0,   4]},
     },
     "Suché / Marginální půdy": {
-        "Velmi úrodná": {"M_giganteus": [4, 10], "SRC": [5, 9]},
-        "Úrodná":       {"M_giganteus": [3,  8], "SRC": [4, 8]},
-        "Neúrodná":     {"M_giganteus": [2,  5], "SRC": [3, 6]},
+        "Optimální": {"M_giganteus": [14, 16], "SRC": [12, 15]},
+        "Průměrná":  {"M_giganteus": [7,  14], "SRC": [7,  12]},
+        "Neúrodná":  {"M_giganteus": [4,   7], "SRC": [4,   7]},
+        "Nevhodná":  {"M_giganteus": [0,   4], "SRC": [0,   4]},
     },
 }
 
@@ -108,10 +116,29 @@ def determine_zone(lat, avg_temp, avg_rain):
     return "Severní Evropa / Chladné pásmo"
 
 
-def gompertz_growth(t_arr, y_max=1.0, b=3.5, c=0.55):
+def gompertz_growth(t_arr, y_max=1.0, b=6.0, c=0.95):
+    # b=6.0, c=0.95 kalibrováno vizuálně dle Janota et al. 2023:
+    #   rok 1 nízký, rok 3–4 výrazný nástup, rok 5–6 plný výnos, plateau do roku 18
     growth  = np.exp(-b * np.exp(-c * t_arr))
-    decline = np.where(t_arr > 12, 1.0 - 0.025*(t_arr - 12), 1.0)
+    # Pokles po roku 18 pro Miscanthus (dle vědců 2025)
+    decline = np.where(t_arr > 18, 1.0 - 0.025*(t_arr - 18), 1.0)
     return growth * np.clip(decline, 0.60, 1.0)
+
+
+def src_yield_curve(t_arr):
+    """
+    Relativní roční produkce suché hmoty SRC vrby v průběhu životnosti plantáže.
+    Kalibrováno vizuálně dle Janota et al. (Energy Reports 2023, Fig. 7) – česká polní data.
+
+    Tvar: bell curve (zvonek) – nástup do roku 11, pak exponenciální pokles.
+      - Gompertz nástup: b=3.0, c=0.40 → rok 5 ~69 %, rok 8 ~92 %, rok 11 = peak
+      - Exponenciální pokles od roku 11: rate=0.06/rok
+      - Výsledek: rok 16 ~77 %, rok 22 ~54 %, rok 29 ~35 %
+    """
+    t = np.asarray(t_arr, dtype=float)
+    growth  = np.exp(-3.0 * np.exp(-0.40 * t))
+    decline = np.exp(-0.06 * np.maximum(0.0, t - 11))
+    return growth * decline
 
 
 def generate_correlated_shocks(years, n_sim, rho=-0.35):
@@ -122,19 +149,27 @@ def generate_correlated_shocks(years, n_sim, rho=-0.35):
 
 
 def src_rotation_multiplier(rotation_index):
-    learning = [1.00, 1.08, 1.12, 1.12, 1.12]
+    # Dle vědců 2025: pokles až po 20 letech = rotace 7 (rok 21)
+    # Rotace 0=rok3, 1=rok6, ..., 6=rok21
+    # Plateau 1.12 udrženo do rotace 6, pak degenerace
+    learning = [1.00, 1.08, 1.12, 1.12, 1.12, 1.12, 1.12]  # rotace 0–6 (roky 3–21)
     if rotation_index < len(learning):
         return learning[rotation_index]
-    return max(learning[-1] * (0.96 ** (rotation_index - len(learning) + 1)), 0.75)
+    # Degenerace od rotace 7 (rok 24+): −4 % za rotaci
+    degeneration = rotation_index - (len(learning) - 1)
+    return max(learning[-1] * (0.96 ** degeneration), 0.75)
 
 
-def simulate_miscanthus(n_sim, years, params, yield_bounds, subsidy_perc, weather_prob=0.2):
+def simulate_miscanthus(n_sim, years, params, yield_bounds, subsidy_perc, weather_prob=0.05):
     y_max_sim      = np.clip(np.random.normal(np.mean(yield_bounds),
                              (yield_bounds[1]-yield_bounds[0])/4, n_sim), 0, 60)
     gompertz_curve = gompertz_growth(np.arange(1, years+1, dtype=float))
     wu, pu         = generate_correlated_shocks(years, n_sim)
-    wm             = np.clip(norm.ppf(wu, loc=1.0, scale=0.22), 0.3, 1.6)
-    wm[np.random.rand(years, n_sim) < weather_prob] *= 0.70
+    # scale kalibrován na meziroční rozdíl ~4 t/ha dle vědců (2025)
+    # Na průměru ~11.5 t/ha → relativní scale = 4 / (2 * 11.5) ≈ 0.17
+    wm             = np.clip(norm.ppf(wu, loc=1.0, scale=0.17), 0.5, 1.5)
+    # Stresový rok: 1 z 20 (5 %), výnos klesne na 50 % (×0.50) dle vědců
+    wm[np.random.rand(years, n_sim) < weather_prob] *= 0.50
     yields         = gompertz_curve[:, np.newaxis] * y_max_sim[np.newaxis, :] * wm
     psc            = norm.ppf(pu)
     prices         = np.zeros((years, n_sim))
@@ -145,25 +180,59 @@ def simulate_miscanthus(n_sim, years, params, yield_bounds, subsidy_perc, weathe
     prices = np.clip(prices, 45, 160)
     cf = yields*prices - params["udrzba"] - yields*params["sklizen_per_tuna"]
     capex = np.random.normal(params["zalozeni"], 200, n_sim)
-    fail  = np.random.binomial(1, params["riziko_fail"], n_sim)
-    cf[0, :] -= (capex + fail*0.5*capex) * (1 - subsidy_perc)
+
+    # Selhání plantáže: 5 % pravděpodobnost (1 z 20) dle vědců 2025
+    fail = np.random.binomial(1, params["riziko_fail"], n_sim)  # 0 nebo 1
+
+    # Pro simulace kde nastalo selhání: 50 % se obnoví, 50 % se nevyplatí
+    renew = np.random.binomial(1, 0.5, n_sim)  # 0=nevyplatí, 1=obnova
+
+    # Obnova (fail=1, renew=1): extra +60 % CAPEX, výnosy pokračují normálně
+    replant_cost = fail * renew * 0.60 * capex
+
+    # Bez obnovy (fail=1, renew=0): nulové výnosy a nulové provozní náklady
+    # → vynulujeme cf pro roky 1+ u těchto simulací
+    abandoned = (fail == 1) & (renew == 0)  # boolean maska
+    cf[:, abandoned] = 0.0  # všechny roky = 0 (žádný příjem ani náklady)
+
+    # Rok 0: CAPEX + případná obnova, sníženo o dotaci
+    cf[0, :] -= (capex + replant_cost) * (1 - subsidy_perc)
+
     return cf, yields, prices
 
 
-def simulate_src(n_sim, years, params, yield_bounds, tech_type, subsidy_perc, weather_prob=0.2):
-    base = np.maximum(np.random.normal(np.mean(yield_bounds),
-                      (yield_bounds[1]-yield_bounds[0])/4, (years, n_sim)), 0)
+def simulate_src(n_sim, years, params, yield_bounds, tech_type, subsidy_perc, weather_prob=0.05):
+    # Maximální roční výnos pro každou simulaci (různé farmy)
+    y_max_sim = np.clip(
+        np.random.normal(np.mean(yield_bounds), (yield_bounds[1]-yield_bounds[0])/4, n_sim),
+        0, 40
+    )
+
+    # Výnosová křivka dle Janota et al. 2023 (česká data, Fig. 7)
+    # Tvar: nástup → plateau (roky 12–20) → pokles od roku 20
+    t_arr  = np.arange(1, years + 1, dtype=float)
+    curve  = src_yield_curve(t_arr)   # shape (years,)
+
+    # Roční produkce = křivka × y_max × weather
     wu, pu = generate_correlated_shocks(years, n_sim)
-    wm = np.clip(norm.ppf(wu, loc=1.0, scale=0.22), 0.3, 1.6)
-    wm[np.random.rand(years, n_sim) < weather_prob] *= 0.70
-    growth    = base * wm
+    # scale kalibrováno na meziroční rozdíl ~2.5 t/ha (vědci 2025)
+    wm = np.clip(norm.ppf(wu, loc=1.0, scale=0.13), 0.5, 1.5)
+    # Stresový rok: 5 % pravděpodobnost, výnos na 50 %
+    wm[np.random.rand(years, n_sim) < weather_prob] *= 0.50
+
+    # Roční přírůstek biomasy (t/ha) pro každý rok a simulaci
+    annual_growth = curve[:, np.newaxis] * y_max_sim[np.newaxis, :] * wm
+
+    # Akumulace a sklizeň
     harvested = np.zeros((years, n_sim))
-    accum, rot = np.zeros(n_sim), 0
+    accum = np.zeros(n_sim)
+    # První sklizeň rok 5, pak každé 3 roky: 5, 8, 11, ..., 29 (dle vědců 2025)
+    harvest_years = set(range(5, years + 1, 3))
     for t in range(years):
-        accum += growth[t, :]
-        if (t+1) % 3 == 0:
-            harvested[t, :] = accum * src_rotation_multiplier(rot)
-            accum = np.zeros(n_sim); rot += 1
+        accum += annual_growth[t, :]
+        if (t + 1) in harvest_years:
+            harvested[t, :] = accum
+            accum = np.zeros(n_sim)
     psc    = norm.ppf(pu)
     prices = np.zeros((years, n_sim))
     prices[0, :] = params["prodejni_cena_start"]
@@ -173,19 +242,34 @@ def simulate_src(n_sim, years, params, yield_bounds, tech_type, subsidy_perc, we
     prices = np.clip(prices, 35, 150)
     cf = np.zeros((years, n_sim)) - params["udrzba"]
     for t in range(years):
-        if (t+1) % 3 == 0:
+        if (t + 1) in harvest_years:
             v = harvested[t, :]
             cf[t, :] += v*prices[t, :] - v*params["sklizen_per_tuna"]
     capex = np.random.normal(params["zalozeni"], 150, n_sim)
-    fail  = np.random.binomial(1, params["riziko_fail"], n_sim)
-    cf[0, :] -= (capex + fail*0.5*capex) * (1 - subsidy_perc)
+
+    # Selhání plantáže: 5 % pravděpodobnost (1 z 20) dle vědců 2025
+    fail = np.random.binomial(1, params["riziko_fail"], n_sim)
+
+    # Pro simulace kde nastalo selhání: 50 % se obnoví, 50 % se nevyplatí
+    renew = np.random.binomial(1, 0.5, n_sim)
+
+    # Obnova (fail=1, renew=1): extra +60 % CAPEX, sklizeň pokračuje normálně
+    replant_cost = fail * renew * 0.60 * capex
+
+    # Bez obnovy (fail=1, renew=0): nulové výnosy a nulové provozní náklady
+    abandoned = (fail == 1) & (renew == 0)
+    cf[:, abandoned] = 0.0
+
+    # Rok 0: CAPEX + případná obnova, sníženo o dotaci
+    cf[0, :] -= (capex + replant_cost) * (1 - subsidy_perc)
+
     return cf, harvested, prices
 
 
 def calculate_sensitivity_matrix(crop_type, years, base_params, y_bounds,
                                   src_tech, area_ha, n_sim, subsidy_perc):
     steps = 10
-    xr, yr = np.linspace(0, 0.4, steps), np.linspace(0, 0.4, steps)
+    xr, yr = np.linspace(0, 0.2, steps), np.linspace(0, 0.2, steps)
     zm = []
     for wp in yr:
         row = []
@@ -512,6 +596,11 @@ if bpej_src == "BPEJ/vumop" and bpej_fert:
     bpej_value   = f"{bpej_fert}  ({bpej_fmt})" if bpej_fmt else bpej_fert
     bpej_caption = BS["bpej_metric_cap_ok"]
     bpej_delta   = None
+    # Mapování BPEJ 3 tříd → nové 4 kategorie půdy
+    _bpej_to_soil = {"Velmi úrodná": "Optimální", "Úrodná": "Průměrná", "Neúrodná": "Neúrodná"}
+    _mapped = _bpej_to_soil.get(bpej_fert)
+    if _mapped and _mapped in SOIL_KEYS:
+        st.session_state["bpej_soil_key"] = _mapped
 elif bpej_src == "mimo_CR":
     bpej_value   = BS["bpej_metric_na"]
     bpej_caption = BS["bpej_metric_cap_out"]
@@ -561,9 +650,9 @@ with cp1:
     # Výchozí index – buď z BPEJ auto-detekce, nebo 1 (Úrodná)
     _bpej_key = st.session_state.get("bpej_soil_key")
     _default_soil_idx = (SOIL_KEYS.index(_bpej_key)
-                         if _bpej_key and _bpej_key in SOIL_KEYS else 1)
+                         if _bpej_key and _bpej_key in SOIL_KEYS else 2)
 
-    soil_idx  = st.selectbox(T["soil_quality"], range(3),
+    soil_idx  = st.selectbox(T["soil_quality"], range(4),
                               format_func=lambda i: T["soil_opts"][i],
                               index=_default_soil_idx)
     soil_key  = SOIL_KEYS[soil_idx]
@@ -754,13 +843,32 @@ if st.button(T["run_button"], type="primary", use_container_width=True):
 
         if data["type"] == "src":
             st.subheader(T["learn_header"])
-            rm = [src_rotation_multiplier(r) for r in range(8)]
-            rl = [T["learn_rot_label"].format(r=r+1, yr=(r+1)*3) for r in range(8)]
+            # Sklizňové roky: 5, 8, 11, 14, 17, 20, 23, 26, 29
+            src_harvest_yrs = [5 + i*3 for i in range(9)]
+            # Relativní výnos v každém sklizňovém roce dle bell curve
+            curve_vals = src_yield_curve(np.array(src_harvest_yrs, dtype=float))
+            peak_val   = curve_vals.max()
+            rm_pct     = (curve_vals / peak_val * 100).tolist()
+            rl = [T["learn_rot_label"].format(r=r+1, yr=src_harvest_yrs[r]) for r in range(9)]
+            peak_idx = int(np.argmax(curve_vals))
+            colors = []
+            for i, v in enumerate(rm_pct):
+                if i == peak_idx:
+                    colors.append("#2ca02c")   # peak – tmavě zelená
+                elif v >= 80:
+                    colors.append("#74c476")   # dobrý výnos – světle zelená
+                else:
+                    colors.append("#d62728")   # pokles – červená
             fl = go.Figure(data=[go.Bar(
-                x=rl, y=[m*100 for m in rm],
-                marker_color=["#2ca02c" if m >= 1.0 else "#d62728" for m in rm])])
-            fl.update_layout(title=T["learn_title"], xaxis_title=T["learn_xaxis"],
-                             yaxis_title=T["learn_yaxis"], yaxis=dict(range=[70, 120]))
+                x=rl, y=[round(v, 1) for v in rm_pct],
+                marker_color=colors,
+                text=[f"{v:.0f} %" for v in rm_pct],
+                textposition="outside")])
+            fl.update_layout(
+                title=T["learn_title"],
+                xaxis_title=T["learn_xaxis"],
+                yaxis_title=T["learn_yaxis"],
+                yaxis=dict(range=[0, 115]))
             st.plotly_chart(fl, use_container_width=True, key=f"learn_{plodina}")
 
         st.subheader(T["sens_header"])
