@@ -1,0 +1,618 @@
+\chapter{Teorie rizika a~stochastické modelování}
+\label{chap:teorie-rizika-new}
+
+Tato kapitola představuje teoretický rámec pro hodnocení investičních
+projektů v~podmínkách nejistoty, se zvláštním zřetelem na sektor
+cíleného pěstování energetické biomasy. Nejprve je podrobně definován
+pojem rizika a~jeho klasifikace, s~důrazem na specifika zemědělských
+investic. Následně jsou zavedeny klíčové \textbf{metriky výnosnosti}
+--- čistá současná hodnota (NPV), ekvivalentní roční anuita (EAA)
+a~doba návratnosti. Na ně navazují \textbf{míry
+rizika}, zejména směrodatná odchylka, Value at Risk (VaR) a~Conditional
+Value at Risk (CVaR), které kvantifikují variabilitu a~hloubku
+potenciálních ztrát. Jádrem kapitoly je stochastická simulace Monte
+Carlo, včetně matematického aparátu pro generování korelovaných
+náhodných veličin a~modelování cenové dynamiky komodit. Závěrečná
+část se věnuje růstovým křivkám a~analýze citlivosti, které tvoří
+metodologický základ simulačního modelu prezentovaného v~praktické
+části práce.
+
+\section{Riziko a~nejistota v~investičním rozhodování}
+\label{sec:riziko-nejistota-new}
+
+V~ekonomické teorii a~finančním managementu je klíčové rozlišovat mezi pojmy \textbf{riziko} a~\textbf{nejistota}. Toto fundamentální rozlišení poprvé systematicky formuloval Frank Knight ve svém stěžejním díle \textit{Risk, Uncertainty and Profit} z~roku 1921 \cite{Knight1921}. Podle Knighta se \textit{riziko} vztahuje k~situacím, kdy jsou známy všechny možné budoucí stavy (výsledky) a~lze jim přiřadit objektivní nebo subjektivní pravděpodobnosti výskytu. Naopak \textit{nejistota} nastává, když buď nejsou známy všechny možné budoucí stavy, nebo nelze určit pravděpodobnosti jejich nastání. V~praxi investičního rozhodování se často pracuje s~rizikem, které je kvantifikovatelné a~měřitelné, zatímco nejistota představuje obtížněji uchopitelný fenomén \cite{FotrHnilica2009}.
+
+Obecně lze riziko definovat jako možnost, že se skutečný výsledek 
+odchýlí od~očekávaného výsledku. Tato odchylka může být jak negativní 
+(ztráta, nižší výnos), tak pozitivní (neočekávaný zisk, vyšší výnos). V~kontextu hodnocení investičních projektů 
+je riziko nejčastěji chápáno jako variabilita očekávaných peněžních 
+toků nebo jako pravděpodobnost nedosažení požadované míry výnosnosti 
+\citep{fotr_soucek_2011}. Cílem řízení rizika je 
+identifikovat, analyzovat, vyhodnotit a~následně ošetřit potenciální 
+hrozby, ale i~využít příležitosti, které riziko přináší.
+
+\subsection{Systematické a~nesystematické riziko}
+\label{subsec:system-nesystem-new}
+
+Základní klasifikace rizik ve finanční teorii rozlišuje riziko 
+systematické a~nesystematické, což má zásadní implikace pro 
+strategii diverzifikace portfolia. Tento přístup vychází 
+z~moderní teorie portfolia formulované Markowitzem 
+\citep{Markowitz1952}, která matematicky ukázala, jak lze 
+pomocí diverzifikace snížit celkové riziko portfolia.
+
+\textbf{Systematické riziko} (též tržní riziko, nediverzifikovatelné riziko) je způsobeno makroekonomickými faktory, které ovlivňují celý trh nebo ekonomiku jako celek. Mezi typické zdroje systematického rizika patří změny úrokových sazeb, inflace, hospodářské cykly, politická nestabilita, globální ekonomické krize nebo přírodní katastrofy velkého rozsahu. Toto riziko nelze eliminovat diverzifikací, neboť postihuje všechny investiční instrumenty, byť v~různé míře. Investoři jsou za podstupování systematického rizika kompenzováni formou rizikové prémie \cite{fotr_soucek_2011}.
+
+\textbf{Nesystematické riziko} (též specifické riziko, diverzifikovatelné riziko) je spojeno s~konkrétním projektem, podnikem nebo odvětvím. Zahrnuje faktory jako technologické problémy, selhání managementu, ztrátu klíčových odběratelů, lokální regulatorní změny nebo specifické přírodní události. Na rozdíl od systematického rizika lze nesystematické riziko účinně snížit diverzifikací -- tedy rozložením investic do většího počtu vzájemně nezávislých aktiv. Moderní teorie portfolia dokládá, že s~rostoucím počtem aktiv v~portfoliu se nesystematická složka rizika asymptoticky blíží nule \cite{Markowitz1959}.
+
+\subsection{Specifická rizika při pěstování energetické biomasy}
+\label{subsec:specificka-rizika}
+
+Investice do cíleného pěstování energetické biomasy, jako jsou
+\textit{Miscanthus} a~rychle rostoucí dřeviny (RRD), jsou vystaveny
+specifické kombinaci rizikových faktorů, která se odlišuje od běžných
+zemědělských i~průmyslových investic. Tyto projekty jsou charakteristické
+dlouhým investičním horizontem (20--30 let), vysokými počátečními náklady
+na založení plantáže a~omezenou flexibilitou v~reakci na tržní změny ve srovnání
+s~jednoletými plodinami, které v~sobě obsahují reálnou opci přeorientování
+produkce \citep{knapek_2024}.
+
+\paragraph{Produkční riziko}
+představuje variabilitu výnosů biomasy, která je determinována klimatickými
+podmínkami (srážky, teplota, výskyt mrazů), kvalitou půdy a~agronomickými
+faktory. Na základě dat z~experimentálních plantáží VÚKOZ Průhonice
+v~různých lokalitách České republiky je variabilita ročních výnosů
+\textit{Miscanthus} odhadována přibližně na 15~\%, zatímco u~SRC vrb
+dosahuje přibližně 10~\%, neboť tříletý rotační cyklus umožňuje
+kompenzovat horší podmínky v~jednom roce v~následujících letech
+\citep{knapek_2024}.
+
+\paragraph{Cenové riziko}
+souvisí s~volatilitou tržních cen biomasy a~energií. Cena dřevní štěpky
+a~dalších biopaliv podléhá sezónním výkyvům, regionálním disparitám
+a~celkovému vývoji cen fosilních paliv \citep{knapek_2024}. Aktuální
+data z~roku 2024 dokumentují meziroční nárůst cen tepla z~biomasy
+v~českých teplárnách až o~20~\%, mimo jiné v~důsledku nejistoty ohledně
+vyplácení zeleného bonusu \citep{tscr_2024}. Trh s~energetickou biomasou
+je navíc strukturálně specifický tím, že dřevní štěpka ze SRC vrby
+a~slamnatá biomasa z~\textit{Miscanthus} nejsou vzájemnými substituty
+z~hlediska spalovací technologie, a~obchodují se proto na oddělených
+trzích s~odlišnou likviditou a~cenovou volatilitou
+\citep{Knapek2026Komunikace}.
+
+\paragraph{Riziko selhání plantáže}
+zahrnuje možnost úplné nebo částečné ztráty porostu v~důsledku extrémních
+klimatických událostí (zejména sucha a~mrazů v~období zakořenění),
+napadení škůdci nebo nemocemi, případně nekvalitního sadebního materiálu.
+Pro podmínky České republiky se pravděpodobnost fatálního poškození
+plantáže v~prvním roce po~založení odhaduje na přibližně 5~\% u~obou
+plodin, a~to na základě konzultací s~vědci VÚKOZ Průhonice. Rozhodnutí
+o~obnově plantáže versus její opuštění má charakter reálné opce, která
+významně ovlivňuje ekonomické hodnocení projektu.
+
+\paragraph{Riziko růstu provozních nákladů}
+je významné zejména v~zemích střední a~východní Evropy, kde rostou ceny
+nájmu zemědělské půdy a~vstupů do produkce \citep{knapek_2024}. Plantáž
+je vázána na konkrétní pozemek po~celou dobu životnosti bez možnosti
+operativní změny, což zvyšuje citlivost projektu na dlouhodobý vývoj
+nákladů.
+
+\paragraph{Riziko změn dotačních schémat}
+vychází z~faktu, že úroveň dotací na konvenční plodiny přímo ovlivňuje
+očekávanou cenu biomasy z~energetických plodin prostřednictvím principu
+příležitostných nákladů~--- vyšší dotace na konvenční plodiny vedou
+k~vyšším cenovým požadavkům pěstitelů energetické biomasy
+\citep{knapek_2024}. V~horizontu životnosti plantáže existuje navíc
+nejistota ohledně budoucího směřování Společné zemědělské politiky EU
+a~implementace nových regulatorních rámců.
+
+\paragraph{Riziko krátkodobosti nájemních smluv}
+je specifické pro české podmínky. Podle \citet{knapek_2024} je
+v~České republice 72,7~\% zemědělské půdy obhospodařováno v~nájmu
+s~typickou délkou smlouvy 5--6 let, což je výrazně méně než životnost
+plantáže \textit{Miscanthus} (20--25 let) nebo SRC vrb (20--30 let).
+Tato disproporce představuje významné riziko předčasného ukončení
+nájmu před dosažením návratnosti investice. U~konvenčních jednoletých
+plodin je toto riziko zanedbatelné.
+
+\paragraph{Riziko z~nemožnosti reagovat na technologický pokrok}
+představuje strukturální nevýhodu víceletých plodin oproti jednoletým.
+U~víceletých energetických plodin je výnosový potenciál fixován
+okamžikem výsadby na celou životnost plantáže, zatímco u~konvenčních
+plodin lze každoročně využít nejnovější odrůdy \citep{knapek_2024}.
+Plantáž založená v~současnosti tak nemůže profitovat z~nových
+šlechtěných genotypů, které se mohou objevit v~průběhu nadcházejících
+20--30 let.
+
+Simulační model prezentovaný v~kapitole \ref{chap:metodologie}
+explicitně modeluje produkční, cenové a~riziko selhání plantáže
+prostřednictvím Monte Carlo simulace. Rizika spojená s~krátkodobostí
+nájemních smluv, změnami dotační politiky a~technologickým zaostáváním
+přesahují rámec předloženého modelu a~jsou diskutována jako jeho
+limitace v~kapitole \ref{chap:zaver}.
+
+\section{Metriky výnosnosti a rizika investic}
+\label{sec:metriky}
+
+Kvantifikace ekonomické výkonnosti a rizika investičního projektu
+vyžaduje matematický aparát, který umožní převést peněžní toky a~jejich
+nejistotu do~měřitelných veličin. Tato sekce nejprve představuje
+základní ukazatele výnosnosti -- čistou současnou hodnotu, její ročně
+ekvivalentní podobu a~dobu návratnosti -- a~následně klíčové míry rizika
+(směrodatnou odchylku, Value at Risk a~Conditional Value at Risk),
+všechny používané v~simulačním modelu prezentovaném v~kapitole~\ref{chap:metodologie}.
+
+\subsection{Čistá současná hodnota (NPV)}
+\label{sec:npv}
+
+Čistá současná hodnota (\textit{Net Present Value}, NPV) je jedním
+z~nejvýznamnějších kritérií pro~hodnocení investičních projektů,
+neboť jako jediný z~běžně používaných ukazatelů zohledňuje současně
+\textit{časovou hodnotu peněz} i~\textit{celý průběh peněžních toků}
+po~celou dobu životnosti projektu \citep{BrealeyMyers2020,fotr_soucek_2011}.
+Pro~projekt s~délkou životnosti $n$ let, peněžními toky $CF_t$
+v~jednotlivých letech a~reálnou diskontní sazbou $r$ je NPV definováno
+vztahem:
+\begin{equation}
+    \text{NPV} = \sum_{t=0}^{n} \frac{CF_t}{(1+r)^t},
+    \label{eq:npv}
+\end{equation}
+kde $CF_0$ obvykle zahrnuje záporný investiční náklad (CAPEX).
+Investice je z~ekonomického hlediska akceptovatelná, pokud
+$\text{NPV} > 0$, neboť projekt v~takovém případě generuje
+nadprůměrný výnos vůči alternativnímu využití kapitálu reprezentovanému
+diskontní sazbou $r$ \citep{BrealeyMyers2020}. Mezi konkurenčními
+projekty se preferuje varianta s~vyšším NPV.
+
+V~kontextu stochastické Monte Carlo simulace se NPV počítá pro~každý
+ze~$N$ simulovaných scénářů samostatně, čímž vzniká empirické rozdělení
+$\{\text{NPV}_i\}_{i=1}^{N}$. Z~tohoto rozdělení lze následně odvodit
+nejen průměrnou hodnotu $\overline{\text{NPV}}$ jakožto očekávaný
+ekonomický přínos projektu, ale především jeho rizikové
+charakteristiky -- směrodatnou odchylku, kvantily (VaR) či~podmíněné
+očekávání chvostových ztrát (CVaR), kterým je věnováno
+\autoref{subsec:smerodatna-odchylka-new}--\ref{subsec:cvar}.
+
+
+\subsection{Ekvivalentní roční anuita (EAA)}
+\label{sec:eaa_theory}
+
+Při srovnávání investičních projektů s~\textit{odlišnou délkou
+životnosti} naráží přímé porovnání NPV na~metodický problém: projekt
+s~vyšším celkovým NPV nemusí být nutně atraktivnější, pokud je
+jeho životnost výrazně delší. Pro~férové srovnání takových alternativ
+zavádí finanční teorie ukazatel \textit{ekvivalentní roční anuity}
+(\textit{Equivalent Annual Annuity}, EAA), který převádí NPV na~částku
+ekvivalentní roční renty po~celou dobu životnosti projektu
+\citep{BrealeyMyers2020}:
+\begin{equation}
+    \text{EAA} = \text{NPV} \cdot \frac{r}{1 - (1+r)^{-n}}.
+    \label{eq:eaa_theory}
+\end{equation}
+Pro~$r = 0$ se vztah degeneruje na~prostý průměr
+$\text{EAA} = \text{NPV}/n$. Interpretace EAA je intuitivní:
+představuje tu konstantní roční částku, která -- diskontovaná stejnou
+sazbou -- by měla shodnou současnou hodnotu jako skutečný (nerovnoměrný)
+profil peněžních toků projektu.
+
+Předpoklad ekonomické intuice EAA spočívá v~možnosti
+\textit{nekonečné replikace} projektu po~uplynutí jeho životnosti
+\citep{BrealeyMyers2020}. V~kontextu pěstování energetické biomasy
+je tento předpoklad poměrně realistický: po~ukončení životnosti
+plantáže lze pozemek vrátit do~zemědělského využití nebo opětovně
+osadit stejnou plodinou, takže ekvivalentní roční anuita reprezentuje
+udržitelný roční ekonomický přínos investice.
+
+V~rámci této práce má EAA klíčovou roli pro~přímé srovnání plodin
+s~odlišnými životními cykly: Miscanthus s~typickou životností 25~let
+versus SRC vrba s~životností 29~let včetně tříleté fáze likvidace.
+Bez~konverze na~roční ekvivalent by byly oba projekty na~úrovni NPV
+nesrovnatelné.
+
+\subsection{Vnitřní výnosové procento (IRR)}
+\label{subsec:irr}
+
+Vnitřní výnosové procento (\textit{Internal Rate of Return}, IRR)
+představuje diskontní sazbu, při níž se~čistá současná hodnota projektu
+rovná nule. Formálně je IRR definováno jako řešení rovnice
+\begin{equation}
+    \mathrm{NPV}(r^*) = \sum_{t=0}^{T} \frac{CF_t}{(1+r^*)^t} = 0,
+    \label{eq:irr}
+\end{equation}
+kde $CF_t$ je peněžní tok v~roce~$t$ a~$T$ je horizont projektu
+\citep{BrealeyMyers2020}. Ekonomicky IRR vyjadřuje \emph{efektivní
+roční výnos investice} při zohlednění časové hodnoty peněz: je-li
+IRR vyšší než požadovaná diskontní sazba investora, projekt vytváří
+ekonomickou hodnotu; v~opačném případě nikoli.
+
+\paragraph{Možnost odvození diskontní sazby z~rozdělení IRR.}
+V~Monte Carlo simulaci lze pro~každý ze~$N$ scénářů řešit
+rovnici~\eqref{eq:irr} samostatně a~získat tak \emph{empirické
+rozdělení} $\{r_i^*\}_{i=1}^{N}$ vnitřních výnosových procent napříč
+nejistotou \citep{Glasserman2003}. Z~něj lze \emph{endogenně} odvodit
+doporučenou diskontní sazbu $r^{\text{rec}}$ třemi přístupy:
+
+\begin{enumerate}
+    \item \textbf{Konzervativní (kvantilový) přístup}~--- $r^{\text{rec}}_\alpha$
+          se~volí jako $\alpha$-tý kvantil rozdělení IRR:
+          \begin{equation}
+              r^{\text{rec}}_\alpha = Q_\alpha\bigl(\{r_i^*\}\bigr),
+              \label{eq:irr_quantile}
+          \end{equation}
+          při čemž $(1-\alpha) \cdot 100\,\%$ scénářů projektu vykáže IRR
+          vyšší než~$r^{\text{rec}}$ (typicky $\alpha = 0{,}05$, analogicky
+          k~Value-at-Risk přístupu \citep{Jorion2007}).
+
+    \item \textbf{Sharpe-based hurdle rate}~--- diskont je dán bezrizikovou
+          sazbou navýšenou o~prémii škálovanou volatilitou výnosů
+          \citep{Sharpe1966}:
+          \begin{equation}
+              r^{\text{rec}}_S = r_f + S^* \cdot \sigma\bigl(\{r_i^*\}\bigr),
+              \label{eq:irr_sharpe}
+          \end{equation}
+          kde $r_f$ je bezriziková reálná sazba, $S^*$ cílový Sharpe ratio
+          a~$\sigma$ směrodatná odchylka rozdělení IRR.
+
+    \item \textbf{Median IRR (break-even)}~--- $r^{\text{rec}}_{\text{med}}
+          = Q_{0{,}5}(\{r_i^*\})$, při níž je projekt v~50\,\% scénářů
+          ziskový.
+\end{enumerate}
+
+Doplňkově lze definovat \emph{implikovanou rizikovou prémii}
+$\pi = \mathbb{E}[r_i^*] - r_f$ vyjadřující očekávaný výnos projektu
+nad~bezrizikovou alternativu. Endogenně odvozený diskont navíc předchází
+\emph{double-counting} rizika, k~němuž dochází při aplikaci klasické
+risk-adjusted discount rate (RADR) na~výsledky simulace, jež už rizikové
+faktory explicitně modelují \citep{Robichek1966,Damodaran2008}. Konkrétní
+hodnoty pro~obě plodiny napříč kvalitami půdy jsou prezentovány
+v~kapitole~\ref{chap:vysledky}.
+
+\subsection{Doba návratnosti investice}
+\label{subsec:doba-navratnosti}
+
+Posledním z~ukazatelů ekonomické výnosnosti zařazeným do~modelu je
+doba návratnosti. Oproti NPV a~EAA má výhodu \textit{intuitivní
+interpretace}~--- udává prostou dobu, za~kterou se počáteční investice
+vrátí prostřednictvím kumulovaných peněžních toků. Tato jednoduchost
+je však vykoupena dvěma podstatnými omezeními: (i)~doba návratnosti
+\textit{ignoruje peněžní toky generované po~okamžiku splacení}, takže
+nerozliší projekt s~krátkou výdělečnou fází od~projektu s~dlouhým
+ziskovým plateau, a~(ii)~ve~své základní podobě \textit{nezohledňuje
+časovou hodnotu peněz} \citep{fotr_soucek_2011}. V~předkládaném modelu
+proto slouží jako doplňková metrika k~NPV a~EAA, nikoli jako primární
+kritérium rozhodování.
+
+
+Doba návratnosti (\textit{payback period}) je jedním z~nejintuitivnějších ukazatelů ekonomické životaschopnosti projektu. Formálně je definována jako nejmenší $T^*$ takové, že kumulovaný peněžní tok přesáhne nulu:
+\begin{equation}
+  T^* = \min\left\{T : \sum_{t=0}^{T} CF_t > 0\right\},
+  \label{eq:payback}
+\end{equation}
+kde $CF_t$ je čistý peněžní tok v~roce $t$. V~Monte Carlo simulaci se pro každý scénář $i$ vypočítá individuální $T_i^*$, čímž vznikne rozdělení doby návratnosti. Klíčovými výstupními ukazateli jsou průměrná doba návratnosti $\overline{T^*}$ a~pravděpodobnost návratnosti $P(T^* < T_{\max})$, kde $T_{\max}$ je životnost plantáže \cite{fotr_soucek_2011}.
+
+U~plantáží energetické biomasy je doba návratnosti typicky delší než u~konvenčních zemědělských investic kvůli vysokým počátečním nákladům (založení, sadba) a~postupnému náběhu produkce v~prvních letech. Stochastický přístup k~analýze doby návratnosti umožňuje investorovi posoudit nejen očekávanou návratnost, ale i~pravděpodobnost, že se investice vrátí v~rámci plánovaného horizontu.
+
+\subsection{Směrodatná odchylka a~rozptyl}
+\label{subsec:smerodatna-odchylka-new}
+
+Nejzákladnější mírou rizika je směrodatná odchylka $\sigma$, která 
+vyjadřuje průměrnou odchylku skutečných výsledků od~očekávané hodnoty. 
+Pro~náhodnou veličinu $X$ s~očekávanou hodnotou $\mu = E(X)$ je 
+rozptyl definován jako:
+
+\begin{equation}
+\sigma^2 = \mathrm{Var}(X) = E\left[(X - \mu)^2\right]
+\label{eq:rozptyl}
+\end{equation}
+
+a~směrodatná odchylka jako $\sigma = \sqrt{\mathrm{Var}(X)}$. 
+V~kontextu Monte Carlo simulace je směrodatná odchylka ročních 
+peněžních toků (cash flow) klíčovým indikátorem míry nejistoty 
+projektu --- vyšší hodnota indikuje větší rozptyl možných výsledků 
+a~tudíž vyšší riziko \cite{Vose2008}.
+
+ 
+\subsection{Value at Risk (VaR)}
+\label{subsec:value-at-risk}
+
+Value at Risk (VaR) patří k~nejrozšířenějším mírám tržního rizika, která se od 90.~let 20.~století stala standardem finančního risk managementu \cite{Jorion2007}. VaR na hladině spolehlivosti $\alpha$ vyjadřuje maximální ztrátu, která nebude překročena s~pravděpodobností $\alpha$ za~dané časové období. Formálně, pro náhodnou veličinu $X$ představující zisk (resp.~ztrátu) platí:
+\begin{equation}
+  \text{VaR}_{\alpha}(X) = -\inf\{x \in \mathbb{R} : F_X(x) > \alpha\},
+  \label{eq:var-def}
+\end{equation}
+kde $F_X$ je distribuční funkce veličiny $X$ a~$\alpha$ je zvolená hladina (typicky 0{,}05 nebo 0{,}01). V~kontextu Monte Carlo simulace se VaR odhaduje přímo z~empirického rozdělení jako příslušný kvantil simulovaných výsledků \cite{Glasserman2003}.
+
+Pro investiční projekty v~oblasti energetické biomasy odpovídá $\text{VaR}_{5\,\%}$ hodnotě pátého percentilu rozdělení celkových kumulovaných zisků -- představuje tedy nejhorší očekávaný výsledek, který by neměl být překročen s~95\,\% pravděpodobností. 
+
+VaR má však známá omezení: není subaditivní, a~tedy nesplňuje axiomy koherentní míry rizika definované v~\cite{Artzner1999}. To znamená, že diverzifikace portfolia může paradoxně vést k~vyššímu VaR než součet individuálních pozic. Toto omezení vedlo k~zavedení podmíněného VaR.
+
+\subsection{Podmíněný Value at Risk (CVaR)}
+\label{subsec:cvar}
+
+Podmíněný Value at Risk (Conditional VaR, CVaR), označovaný též jako Expected Shortfall (ES), odstraňuje nedostatky klasického VaR tím, že kvantifikuje průměrnou ztrátu v~případech, kdy je VaR překročen \cite{Rockafellar2000}. Formálně:
+\begin{equation}
+  \text{CVaR}_{\alpha}(X) = -\frac{1}{\alpha} \int_0^{\alpha} F_X^{-1}(p)\,\mathrm{d}p = \text{E}\bigl[-X \mid X \leq -\text{VaR}_{\alpha}(X)\bigr].
+  \label{eq:cvar-def}
+\end{equation}
+
+ V~praxi Monte Carlo simulace se CVaR odhaduje jednoduše jako průměr simulovaných ztrát, které padly pod hodnotu VaR:
+\begin{equation}
+  \widehat{\text{CVaR}}_{\alpha} = \frac{1}{|\mathcal{I}_{\alpha}|}\sum_{i \in \mathcal{I}_{\alpha}} (-X_i),
+  \quad \mathcal{I}_{\alpha} = \{i : X_i \leq -\widehat{\text{VaR}}_{\alpha}\},
+  \label{eq:cvar-empirical}
+\end{equation}
+kde $\mathcal{I}_{\alpha}$ je množina indexů simulací spadajících do~$\alpha$-kvantilového chvostu.
+
+Pro~hodnocení investic do~energetické biomasy poskytuje CVaR 
+komplexnější obraz rizikového profilu než samotný VaR, neboť 
+zohledňuje celou strukturu chvostu rozdělení ztrát. Zatímco VaR 
+říká \uv{v~95~\% případů nebude ztráta větší než...}, CVaR odpovídá 
+na~otázku \uv{pokud ke~ztrátě dojde, jaká bude průměrně její 
+velikost?}.
+
+
+\section{Stochastická simulace Monte Carlo}
+\label{sec:monte-carlo}
+
+Metoda Monte Carlo představuje třídu výpočetních algoritmů, které využívají opakované náhodné vzorkování k~získání numerických výsledků pro problémy, jejichž analytické řešení je obtížné nebo nemožné \cite{Glasserman2003}. Název pochází z~kasina v~Monte Carlu a~metoda byla formálně vyvinuta v~40.~letech 20.~století v~rámci projektu Manhattan, kde ji Stanislaw Ulam a~John von Neumann využili pro simulaci neutronové difuze \cite{Metropolis1949}.
+
+\subsection{Princip a~konvergence}
+\label{subsec:mc-princip}
+
+Základní myšlenka Monte Carlo simulace spočívá v~opakovaném generování náhodných scénářů (realizací) modelu a~následné statistické analýze výsledků. Pro odhad střední hodnoty veličiny $Y = g(X_1, \dots, X_k)$, kde $X_i$ jsou náhodné vstupní parametry, se provede $N$ nezávislých simulací a~výsledný odhad je:
+\begin{equation}
+  \hat{\mu}_N = \frac{1}{N}\sum_{i=1}^{N} Y_i,
+  \label{eq:mc-estimator}
+\end{equation}
+kde $Y_i = g(X_1^{(i)}, \dots, X_k^{(i)})$ je výstup $i$-té simulace. Dle silného zákona velkých čísel platí $\hat{\mu}_N \xrightarrow{\text{s.j.}} \text{E}[Y]$ pro $N \to \infty$ a~dle centrální limitní věty je asymptotický konfidenční interval:
+\begin{equation}
+  \hat{\mu}_N \pm z_{1-\alpha/2} \cdot \frac{\hat{\sigma}_N}{\sqrt{N}},
+  \label{eq:mc-ci}
+\end{equation}
+kde $\hat{\sigma}_N$ je výběrová směrodatná odchylka a~$z_{1-\alpha/2}$ je kvantil normálního rozdělení \cite{Glasserman2003}. Konvergenční rychlost $O(1/\sqrt{N})$ je nezávislá na~dimenzi problému, což činí metodu obzvláště výhodnou pro vícerozměrné modely.
+
+\subsection{Aplikace v~investičním hodnocení biomasy}
+\label{subsec:mc-biomasa}
+
+V~oblasti hodnocení investic do~energetické biomasy umožňuje 
+Monte Carlo simulace zachytit současný vliv mnoha zdrojů nejistoty: 
+variabilitu výnosů, fluktuaci tržních cen, riziko selhání plantáže, 
+klimatické výkyvy a~nejistotu v~nákladech. 
+Na~rozdíl od~deterministických metod, které pracují 
+s~bodovými odhady vstupních parametrů, poskytuje simulace celé 
+rozdělení možných ekonomických výsledků, což umožňuje kvantifikovat 
+pravděpodobnost dosažení určité míry výnosnosti i~rizikové indikátory 
+typu VaR a~CVaR \citep{Vose2008}.
+
+
+\subsection{Generování korelovaných náhodných veličin}
+\label{subsec:korelovane-veliciny}
+
+V~reálných investičních modelech nejsou vstupní nejistoty vždy vzájemně
+nezávislé. Pokud mezi dvěma stochastickými veličinami existuje
+ekonomicky věrohodná závislost, je třeba ji při simulaci zachytit~---
+ignorování této závislosti vede k~nesprávnému odhadu rozptylu výsledných
+peněžních toků, a~tedy ke~zkreslení rizikových metrik typu Value at Risk
+či Conditional Value at Risk. V~zemědělských modelech bývá typickým
+příkladem tzv. \textit{natural hedge}: roky s~příznivým počasím vedou
+k~nadprůměrné produkci, vyšší nabídka na trhu tlačí ceny dolů, zatímco
+v~letech s~nepříznivým počasím dochází k~opačnému jevu \citep{finger_2012}.
+Tento mechanismus implikuje negativní korelaci mezi výnosovými a~cenovými
+šoky a~funguje jako přirozený hedge investora proti počasovému riziku.
+Pro zachycení takových závislostí v~Monte Carlo simulaci je nutné
+generovat korelované náhodné veličiny, k~čemuž se standardně používá
+Choleskyho dekompozice.
+\subsubsection{Choleskyho dekompozice}
+\label{subsubsec:cholesky}
+
+Standardní metodou pro generování korelovaných normálních veličin je Choleskyho dekompozice korelační (resp.~kovarianční) matice \cite{Glasserman2003}. Pro korelační matici $\mathbf{R}$ rozměru $k \times k$ existuje dolní trojúhelníková matice $\mathbf{L}$ taková, že:
+\begin{equation}
+  \mathbf{R} = \mathbf{L}\,\mathbf{L}^\top.
+  \label{eq:cholesky}
+\end{equation}
+Pokud $\mathbf{Z} = (Z_1, \dots, Z_k)^\top$ je vektor nezávislých 
+standardních normálních veličin, pak $\mathbf{X} = \mathbf{L}\,\mathbf{Z}$ 
+má korelační strukturu danou maticí~$\mathbf{R}$. Pro~dvourozměrný 
+případ s~korelačním koeficientem~$\rho$ má dekompozice jednoduchý tvar:
+\begin{equation}
+  X_1 = Z_1, \qquad X_2 = \rho\,Z_1 + \sqrt{1-\rho^2}\,Z_2,
+  \label{eq:cholesky-2d}
+\end{equation}
+kde $Z_1, Z_2 \sim N(0,1)$ jsou nezávislé. 
+
+\subsubsection{Gaussovská kopule}
+\label{subsubsec:gauss-copula}
+Choleskyho dekompozice generuje korelované normální veličiny, avšak 
+vstupní parametry modelu nemusí mít normální rozdělení. Gaussovská 
+kopule umožňuje transformovat korelované normální veličiny 
+na~veličiny s~libovolnými marginálními rozděleními při zachování 
+korelační struktury \citep{Nelsen2006}. Postup zahrnuje:
+\begin{enumerate}
+  \item Generování korelovaných normálních veličin 
+  $\mathbf{X} = \mathbf{L}\,\mathbf{Z}$ dle \eqref{eq:cholesky}.
+  \item Transformaci na~uniformní veličiny: $U_i = \Phi(X_i)$, 
+  kde $\Phi$ je distribuční funkce $N(0,1)$.
+  \item Aplikaci inverzních distribučních funkcí požadovaných 
+  rozdělení: $Y_i = F_i^{-1}(U_i)$.
+\end{enumerate}
+Tato tříkroková procedura zajišťuje, že výsledné veličiny $Y_i$ 
+mají předepsaná marginální rozdělení a~zároveň zachovávají 
+korelační strukturu definovanou maticí~$\mathbf{R}$ 
+\citep{Nelsen2006}. V~kontextu simulace biomasy se druhý krok 
+($\Phi$-transformace) aplikuje na~oba korelované šoky, čímž 
+vzniknou uniformně rozdělené veličiny, které jsou následně 
+použity k~modulaci výnosu a~ceny.
+
+\subsection{Bernoulliho rozdělení pro modelování selhání plantáže}
+\label{subsec:bernoulli}
+
+Vedle spojitých rizikových faktorů (počasí, ceny) je v~Monte Carlo 
+simulaci nutné modelovat také diskrétní katastrofické události, 
+jako je úplné selhání plantáže v~důsledku extrémních klimatických 
+událostí, napadení škůdci nebo nekvalitního sadbového materiálu. 
+Pro tyto účely se standardně používá Bernoulliho rozdělení 
+\citep{Vose2008}: pro každý rok a~každou simulaci se generuje 
+náhodná proměnná $B_t \sim \mathrm{Bernoulli}(p_f)$, kde $p_f$ 
+je pravděpodobnost selhání. V~případě $B_t = 1$ dochází k~úplné 
+ztrátě produkce v~daném roce. Pro podmínky České republiky se 
+$p_f$ pohybuje v~rozmezí 5--10~\% v~prvním roce po~založení 
+plantáže \citep{knapek_2024}.
+
+\subsection{Stochastické modelování cen komodit}
+\label{subsec:modelovani-cen}
+
+Ceny energetické biomasy podléhají značné volatilitě, která je ovlivněna nabídkou a~poptávkou, cenami substitutů (fosilních paliv), agrární politikou a~klimatickými faktory. Pro modelování vývoje cen v~čase se v~literatuře používají dva základní přístupy: geometrický Brownův pohyb (GBP) a~Ornstein-Uhlenbeckův (OU) mean-revertní proces.
+
+GBP předpokládá, že logaritmický výnos ceny sleduje náhodnou procházku s~driftem, což vede k~neomezené varianci v~čase a~potenciálně nerealistickým cenovým extrémům. Na~trzích s~biomasou však existují přirozené regulační mechanismy -- při~vysoké ceně poptávka klesá (substituce jinými palivy), při~nízké ceně nabídka klesá (pěstitelé opouštějí plodinu). Proto je pro komoditní trhy vhodnější mean-revertní model \cite{Hull2018}.
+
+V~předloženém modelu je cenová dynamika popsána Ornstein-Uhlenbeckovým procesem s~dlouhodobým driftem:
+\begin{equation}
+    \mathrm{d}S_t = \theta\bigl(\mu(t) - S_t\bigr)\,\mathrm{d}t + \sigma\,\mathrm{d}W_t,
+    \label{eq:ou-process}
+\end{equation}
+kde $S_t$ je cena v~čase~$t$, $\theta > 0$ je rychlost návratu 
+k~průměru (mean-reversion speed), $\mu(t) = \mu_0 \cdot (1+g)^t$ 
+je časově proměnný dlouhodobý průměr rostoucí reálným driftem~$g$, 
+$\sigma$ je volatilita a~$W_t$ je Wienerův proces. Parametr~$\theta$ 
+řídí, jak rychle se cena vrací k~rovnovážné hladině --- vyšší~$\theta$ 
+znamená silnější gravitaci k~průměru. Vztah mezi~$\theta$ a~poločasem 
+návratu~$t_{1/2}$ je dán vzorcem $t_{1/2} = \ln(2) / \theta$.
+
+Diskrétní aproximace pro roční krok ($\Delta t = 1$) má tvar:
+\begin{equation}
+  S_{t+1} = S_t + \theta \left(\mu(t) - S_t\right) + \sigma \cdot \varepsilon_t,
+  \label{eq:mean-reversion-discrete}
+\end{equation}
+
+kde $\varepsilon_t \sim \mathcal{N}(0,1)$ je korelovaný normální šok
+(viz~sekce~2.3.3) reprezentující náhodnou složku cenové dynamiky.
+Při $\varepsilon_t = 0$ se~v~daném roce neuplatní žádný stochastický
+impulz a~cena se~vyvíjí čistě deterministickou mean-revertní složkou.
+Kladná hodnota $\varepsilon_t > 0$ představuje pozitivní cenový šok,
+který vychýlí cenu nad~očekávanou trajektorii, zatímco $\varepsilon_t < 0$
+značí negativní šok stlačující cenu pod~ni; intenzita tohoto vychýlení
+je škálována parametrem volatility $\sigma$.
+Parametr $g$ představuje dlouhodobý drift cenové úrovně, kterým se
+gravitační střed $\mu(t)$ posouvá v~čase. Kladná hodnota $g > 0$ vede
+k~postupnému růstu rovnovážné ceny, zatímco $g = 0$ odpovídá stacionárnímu
+procesu s~konstantní dlouhodobou hladinou. Simulované cenové trajektorie
+mohou být dále omezeny absorpčními bariérami v~podobě cenových stropů
+a~podlah, které brání nerealistickým extrémům a~zachycují přirozená
+tržní omezení. Konkrétní volba parametrů $\theta$, $\sigma$, $g$ a~hraničních
+hodnot pro modelovaný trh s~energetickou biomasou je diskutována
+v~kapitole \ref{chap:metodologie}.
+
+
+\section{Modelování růstu a~výnosu biomasy}
+\label{sec:modelovani-rustu}
+
+Přesné modelování výnosové křivky je klíčovým vstupem pro ekonomickou
+simulaci, neboť roční sklizeň přímo determinuje příjmovou stranu
+peněžních toků. Energetické plodiny vykazují specifické růstové vzorce,
+které se liší od~konvenčních zemědělských plodin a~které je třeba
+zachytit s~ohledem na~celý životní cyklus plantáže (typicky 20--30 let).
+Výnosová křivka víceleté plantáže má čtyři ekonomicky významné fáze:
+postupnou \emph{etablaci} v~prvních letech, prudký nárůst do~\emph{peaku}
+ve~zralém stádiu, \emph{plateau} maximální produktivity a~následný
+\emph{postupný úpadek} ke~konci životnosti plantáže.
+
+\subsection{Empirická výnosová křivka Miscanthus}
+\label{subsec:miscanthus-yield-curve}
+
+Pro modelování ročních výnosů sušiny \textit{Miscanthus $\times$ giganteus}
+využíváme \emph{piecewise-konstantní empirickou křivku} kalibrovanou přímo
+na~publikované české polní pokusy. Konkrétně přebíráme tvar výnosové
+křivky  z~\citet{Weger2021}, která reprezentuje typický průběh výnosu
+na~optimálních stanovištích v~ČR a~je odvozena z~dlouhodobých
+experimentálních ploch VÚKOZ Průhonice (Michovky, Lukavec).
+
+Empirická křivka má čtyři charakteristické fáze:
+\begin{itemize}
+    \item \textbf{Etablace} (rok 1--3): plantáž buduje rhizomový systém,
+          výnos je zanedbatelný (0--16~\% peakové hodnoty).
+    \item \textbf{Skokový nárůst do~peaku} (rok 4): rhizomový systém
+          dospívá a~výnos rychle dosahuje $\sim 94\,\%$ peaku.
+    \item \textbf{Peak plateau} (rok 5--8): výnos zůstává na~peakové
+          úrovni (94--100~\%).
+    \item \textbf{Postupný úpadek} (rok 9--25): pomalý pokles
+          produktivity ze~$\sim 90\,\%$ na~$\sim 32\,\%$ peaku
+          ke~konci ekonomické životnosti plantáže.
+\end{itemize}
+
+Roční výnos sušiny v~roce~$t$ je dán přímým součinem relativního
+výnosu, maximálního ročního výnosu plantáže a~stochastického
+počasového multiplikátoru:
+\begin{equation}
+    Y_{t}^{(M)} = \rho_M(t) \cdot Y_{\max} \cdot w_t,
+    \label{eq:miscanthus-vynos-empirie}
+\end{equation}
+kde $\rho_M(t) \in [0, 1]$ je hodnota empirické křivky pro rok~$t$
+(peak normalizován na~$\rho_M = 1$), $Y_{\max}$ je nominální maximální
+roční výnos sušiny dané kombinace klimatické zóny a~kvality půdy
+a~$w_t$ je stochastický multiplikátor zachycující meziroční variabilitu
+počasí (viz § \ref{sec:weather_mult}). Konkrétní kalibrované hodnoty
+$\rho_M(t)$ pro 25letou modelovou životnost jsou uvedeny v~kapitole
+\ref{chap:metodologie}, sekce~\ref{subsec:miscanthus-vynosy}.
+
+\subsection{Výnosová křivka rychle rostoucích dřevin}
+\label{subsec:src-yield}
+
+Rychle rostoucí dřeviny (RRD) mají odlišnou výnosovou dynamiku
+danou cyklickým sklízením (obmýtím) a~postupným rozvojem
+kořenového a~pařezového systému. V~předloženém modelu se~opíráme
+výhradně o~expertní data Výzkumného ústavu Silva Taroucy
+pro~krajinu a~okrasné zahradnictví v~Průhonicích (VÚKOZ)
+z~dlouhodobých polních pokusů na~území České republiky
+\citep{VUKOZ2026}. Tato data ukazují tři charakteristické fáze
+životního cyklu plantáže:
+\begin{enumerate}
+    \item \textbf{Etablace} (rok 1--6): plantáž buduje kořenový a~pařezový
+          systém; první sklizeň ve~3.~roce dosahuje typicky pouze zlomku
+          peakového výnosu, druhá sklizeň ve~6.~roce již podstatné části.
+    \item \textbf{Maximální produktivita} (rok 9--12): peak výnosu
+          plně zralé plantáže.
+    \item \textbf{Postupný úpadek} (rok 13--24): empiricky pozorovaný
+          pokles produktivity dlouhých plantáží, jehož rychlost závisí
+          na~kvalitě půdy.
+\end{enumerate}
+Pro kvantifikaci tohoto profilu volíme \emph{piecewise-konstantní funkci}
+$y_{\text{SRC}}(t)$ kalibrovanou na~expertní data VÚKOZ Průhonice.
+Funkce přiřazuje každému roku v~rámci tříletého obmýtí relativní
+výnosový faktor, jehož součin s~nominálním maximálním ročním výnosem
+plantáže $Y_{\max}$ dává očekávaný roční přírůstek sušiny. Konkrétní
+hodnoty pro čtyři kvality půdy (Optimální, Průměrná, Neúrodná,
+Nevhodná) a~detailní popis kalibrace jsou uvedeny v~kapitole
+\ref{chap:metodologie}, podsekci \ref{subsec:src-vynosy}.
+
+\subsection{Akumulace biomasy a~sklizňový cyklus RRD}
+\label{subsec:akumulace-sklizen}
+
+Specifickým rysem RRD je, že biomasa je akumulována kontinuálně po~dobu
+celého obmýtního cyklu a~sklízena jednorázově. Sklizená biomasa
+v~roce sklizně~$t_h$ je součtem ročních přírůstků za~uplynulý cyklus:
+\begin{equation}
+    Y_{t_h} = \sum_{k=t_{h-1}+1}^{t_h} y_{\mathrm{SRC}}(k, q),
+    \label{eq:src-harvest}
+\end{equation}
+kde $y_{\mathrm{SRC}}(k, q)$ je roční přírůstek sušiny závislý
+na~kvalitě půdy~$q$ (viz § \ref{subsec:src-yield}) a~$t_{h-1}$ je rok
+předchozí sklizně (případně rok výsadby pro~první sklizňový cyklus).
+V~letech bez sklizně plantáž generuje pouze náklady na~údržbu,
+v~letech sklizně se realizuje příjem z~prodeje akumulované biomasy.
+
+
+\section{Analýza citlivosti
+}
+Analýza citlivosti zkoumá, jak změny vstupních parametrů ovlivňují výstup modelu, a~je nezbytným doplňkem Monte Carlo simulace \cite{Saltelli2008}. V~kontextu investičních modelů pro energetickou biomasu slouží k~identifikaci klíčových rizikových faktorů a~ke~kvantifikaci robustnosti výsledků.
+
+\subsection{Lokální a~globální metody}
+\label{subsec:citlivost-metody}
+
+Lokální analýza citlivosti (\textit{one-at-a-time}, OAT) mění jeden parametr při fixaci ostatních a~sleduje vliv na~výstup. Ačkoli je jednoduchá na~implementaci, nezachycuje interakce mezi parametry \cite{Saltelli2008}. Globální metody naproti tomu variují všechny parametry současně a~zkoumají celý prostor vstupů.
+
+Pro investiční modely s~mnoha nejistými parametry se používá přístup založený na~systematickém prohledávání mřížky (\textit{grid search}): pro dva klíčové rizikové faktory (např.~pravděpodobnost selhání sadby $p_f$ a~pravděpodobnost špatného počasí $p_w$) se vytvoří dvourozměrná mřížka hodnot a~pro každou kombinaci se provede plná Monte Carlo simulace. Výsledkem je matice hodnot zvoleného výstupního ukazatele (např.~průměrné roční směrodatné odchylky zisku), která se vizualizuje jako 3D povrchový graf nebo teplotní mapa. Tento přístup umožňuje identifikovat oblasti parametrického prostoru s~nejvyšší citlivostí modelu a~posoudit, které rizikové faktory mají dominantní vliv na~variabilitu výsledků.
+
+
+
+
+

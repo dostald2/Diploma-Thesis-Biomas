@@ -1,0 +1,804 @@
+% ============================================================
+% LITERATURA — Diplomová práce: Ocenění rizika při cíleném
+% pěstování biomasy (Dostál 2026)
+% ============================================================
+% Po duduplikaci a sjednocení klíčů.
+% Pravidla pojmenování klíčů:
+%   - Czech-style snake_case (mccalmont_2017, knapek_2024) tam,
+%     kde už text používal tuto variantu.
+%   - CamelCase tam, kde text také.
+%   - Po sjednocení existuje pouze JEDNA varianta každého zdroje.
+% ============================================================
+
+% ------------------------------------------------------------
+% Kapitola 1 — Biomasa (energetické pozadí, ČR + EU)
+% ------------------------------------------------------------
+
+@article{McKendry2002a,
+  author  = {McKendry, Peter},
+  title   = {Energy production from biomass (part 1): overview of biomass},
+  journal = {Bioresource Technology},
+  volume  = {83},
+  number  = {1},
+  pages   = {37--46},
+  year    = {2002},
+  doi     = {10.1016/S0960-8524(01)00118-3}
+}
+
+@article{Lewandowski2003,
+  author  = {Lewandowski, Iris and Scurlock, Jonathan M. O. and Lindvall, Eva and Christou, Myrsini},
+  title   = {The development and current status of perennial rhizomatous grasses as energy crops in the {US} and {Europe}},
+  journal = {Biomass and Bioenergy},
+  volume  = {25},
+  number  = {4},
+  pages   = {335--361},
+  year    = {2003},
+  doi     = {10.1016/S0961-9534(03)00030-8}
+}
+
+@article{mccalmont_2017,
+  author  = {McCalmont, Jon P. and Hastings, Astley and McNamara, Niall P. and Richter, Goetz M. and Robson, Paul and Donnison, Iain S. and Clifton-Brown, John},
+  title   = {Environmental costs and benefits of growing {Miscanthus} for bioenergy in the {UK}},
+  journal = {GCB Bioenergy},
+  volume  = {9},
+  number  = {3},
+  pages   = {489--507},
+  year    = {2017},
+  doi     = {10.1111/gcbb.12294}
+}
+
+@article{AduFosu2024,
+  author  = {Adu Fosu, Bright and others},
+  title   = {Decadal change in soil carbon and nitrogen with a {Miscanthus} $\times$ giganteus crop on abandoned agricultural land in southeast {Ohio}},
+  journal = {GCB Bioenergy},
+  volume  = {16},
+  number  = {7},
+  pages   = {e13171},
+  year    = {2024},
+  doi     = {10.1111/gcbb.13171}
+}
+
+@article{Rodrigues2021,
+  author  = {Rodrigues, Abel and Bordado, Jo{\~a}o C. M. and Mateus, Margarida M.},
+  title   = {Short rotation woody coppices for biomass production: An integrated analysis of the potential as an energy alternative},
+  journal = {Current Sustainable/Renewable Energy Reports},
+  volume  = {8},
+  pages   = {70--89},
+  year    = {2021},
+  doi     = {10.1007/s40518-020-00171-3}
+}
+
+@article{Strasil2009,
+  author  = {Stra{\v{s}}il, Zden{\v{e}}k},
+  title   = {P{\v{e}}stov{\'a}n{\'\i} a vyu{\v{z}}it{\'\i} ozdobnice ({Miscanthus}) v podm{\'\i}nk{\'a}ch {\v{C}}esk{\'e} republiky},
+  journal = {V{\'y}zkumn{\'y} {\'u}stav rostlinn{\'e} v{\'y}roby, Praha-Ruzyn{\v{e}}},
+  year    = {2009}
+}
+
+@article{Wagner2022,
+  author  = {Wagner, Moritz and Winkler, Bastian and Lask, Jan and Weik, Johannes and Kiesel, Andreas and Koch, Moritz and Clifton-Brown, John and von Cossel, Moritz},
+  title   = {The True Costs and Benefits of {Miscanthus} Cultivation},
+  journal = {Agronomy},
+  volume  = {12},
+  number  = {12},
+  pages   = {3071},
+  year    = {2022},
+  doi     = {10.3390/agronomy12123071}
+}
+
+@article{Weger2021,
+  author  = {Weger, Jan and Kn{\'a}pek, Jaroslav and Buben{\'\i}k, Jaroslav and V{\'a}vrov{\'a}, Kamila and Stra{\v{s}}il, Zden{\v{e}}k},
+  title   = {Can {Miscanthus} Fulfill Its Expectations as~an~Energy Biomass Source in~the~Current Conditions of~the~{Czech Republic}? --- Potentials and~Barriers},
+  journal = {Agriculture (Switzerland)},
+  volume  = {11},
+  number  = {1},
+  pages   = {1--21},
+  year    = {2021},
+  doi     = {10.3390/agriculture11010040}
+}
+
+@misc{Trogl2026,
+  author       = {Trogl, Josef},
+  title        = {Osobn{\'\i} konzultace: dod{\'a}vky odde{\v{n}}k{\r{u}} {Miscanthus} v~regionu Cheb--Franti{\v{s}}kovy L{\'a}zn{\v{e}}},
+  year         = {2026},
+  howpublished = {Univerzita J.~E.~Purkyn{\v{e}}, {\'U}st{\'\i} nad~Labem, Fakulta {\v{z}}ivotn{\'\i}ho prost{\v{r}}ed{\'\i}},
+  note         = {Kontakt na~n{\v{e}}meck{\'e}ho dodavatele sadebn{\'\i}ho materi{\'a}lu}
+}
+
+@misc{VUKOZ2026,
+  author       = {Weger, Jan and {kolektiv V{\'U}KOZ Pr{\r{u}}honice}},
+  title        = {Osobn{\'\i} konzultace: ekonomick{\'e} a~agronomick{\'e} parametry p{\v{e}}stov{\'a}n{\'\i} energetick{\'y}ch plodin v~{\v{C}}R},
+  year         = {2026},
+  howpublished = {V{\'Y}KOZ, Pr{\r{u}}honice}
+}
+
+@misc{Knapek2026Komunikace,
+  author       = {Kn{\'a}pek, Jaroslav},
+  title        = {Osobn{\'\i} konzultace: ekonomick{\'e} parametry investice do~p{\v{e}}stov{\'a}n{\'\i} energetick{\'y}ch plodin v~{\v{C}}R},
+  year         = {2026},
+  howpublished = {{\v{C}}VUT v~Praze, Fakulta elektrotechnick{\'a}, katedra ekonomiky a~managementu},
+  note         = {Konzultace o~kalibraci modelu, struktu\v{r}e n\'akladu a~rizikov\'em profilu}
+}
+
+@techreport{ThetaMetodika2024,
+  author      = {{Asociace pro teplo z obnoviteln\'{y}ch zdroj\r{u} (THETA)}},
+  title       = {{Metodika hodnocen\'{i} dlouhodob\'{e} udr\v{z}itelnosti biomasy v tepl\'{a}renstv\'{i}}},
+  institution = {THETA, Sou\v{c}\'{a}st projektu Green Deal 2-2},
+  year        = {2024},
+  url         = {https://vuk.gov.cz/wp-content/uploads/2025/01/Metodika-teplarenstvi-Theta-GreenDeal-2.pdf},
+  note        = {Tab.~4: v\'{y}h\v{r}evnost biomasy kategori\'{i} -- Miscanthus 13{,}75 GJ/t (vlhk. 17--23\,\%, su\v{s}ina 17{,}61 GJ/t), RRD/SRC 6{,}92 GJ/t (vlhk. 46--60\,\%, su\v{s}ina 18{,}39 GJ/t)}
+}
+
+@book{HavlickovaWegerKnapek2011,
+  author    = {Havl{\'\i}{\v{c}}kov{\'a}, Kamila and Weger, Jan and Kn{\'a}pek, Jaroslav},
+  title     = {Energetick{\'e} rostliny -- p{\v{e}}stov{\'a}n{\'\i} a~vyu{\v{z}}it{\'\i}},
+  publisher = {V{\'Y}KOZ Pr{\r{u}}honice / {\v{C}}VUT Praha},
+  year      = {2011},
+  note      = {Prim{\'a}rn{\'\i} zdroj v{\'y}h{\v{r}}evnost{\'\i} v~THETA Metodika 2024, Tab.~4}
+}
+
+% --- ČR/EU energetika a teplárenství ---
+
+@misc{ERU2025VymerBiomasa,
+  author       = {{Energetick\'{y} regula\v{c}n\'{i} \'{u}\v{r}ad}},
+  title        = {Cenov\'{y} v\'{y}m\v{e}r {\v{c}}.~8/2025, kter\'{y}m se~stanovuje podpora elekt\v{r}iny a~tepla vyroben\'{y}ch vyu\v{z}it\'{i}m energie biomasy},
+  year         = {2025},
+  howpublished = {Energetick\'{y} regula\v{c}n\'{i} v\v{e}stn\'{i}k, {\v{c}}\'{a}stka~12/2025},
+  note         = {Vyd\'{a}no 30.~9.~2025, \'{u}\v{c}innost od~1.~1.~2026. {\v{C}}.~j.: 08627-4/2025-ERU}
+}
+
+@misc{ERU_CV8_2025,
+  author       = {{Energetick\'{y} regula\v{c}n\'{i} \'{u}\v{r}ad}},
+  title        = {Cenov\'{y} v\'{y}m\v{e}r ER\'{U} \v{c}.~8/2025, kter\'{y}m se stanovuje podpora elekt\v{r}iny a tepla vyroben\'{y}ch vyu\v{z}it\'{i}m energie biomasy},
+  howpublished = {Energetick\'{y} regula\v{c}n\'{i} v\v{e}stn\'{i}k, \v{c}\'{a}stka 12/2025},
+  year         = {2025},
+  month        = sep,
+  note         = {\v{C}.~j.: 08627-4/2025-ERU; \'{u}\v{c}innost od 1.~1.~2026; cit. cena biomasy kat.~1+2 = 190~K\v{c}/GJ}
+}
+
+@misc{Vyhlaska315_2025,
+  author       = {{\v{C}esk\'{a} republika}},
+  title        = {Vyhl\'{a}\v{s}ka \v{c}.~315/2025 Sb., kterou se m\v{e}n\'{i} vyhl\'{a}\v{s}ka \v{c}.~79/2022 Sb., o~technicko-ekonomick\'{y}ch parametrech pro stanoven\'{i} referen\v{c}n\'{i}ch v\'{y}kupn\'{i}ch cen a~zelen\'{y}ch bonus\r{u}},
+  howpublished = {Sb\'{i}rka z\'{a}kon\r{u} \v{C}R, \v{c}\'{a}stka 315/2025},
+  year         = {2025},
+  month        = sep,
+  note         = {\'{U}\v{c}innost od 1.~1.~2026; p\v{r}\'{i}loha \v{c}.~2 obsahuje cenu biomasy kategorie 1: 190~K\v{c}/GJ},
+  url          = {https://www.e-sbirka.cz/sb/2025/315}
+}
+
+@misc{Vyhlaska79_2022,
+  author       = {{\v{C}esk\'{a} republika}},
+  title        = {Vyhl\'{a}\v{s}ka \v{c}.~79/2022 Sb., o~technicko-ekonomick\'{y}ch parametrech pro stanoven\'{i} referen\v{c}n\'{i}ch v\'{y}kupn\'{i}ch cen a~zelen\'{y}ch bonus\r{u}},
+  howpublished = {Sb\'{i}rka z\'{a}kon\r{u} \v{C}R},
+  year         = {2022},
+  note         = {Ve zn\v{e}n\'{i} pozd\v{e}j\v{s}\'{i}ch p\v{r}edpis\r{u} (vyhl\'{a}\v{s}ka 275/2023 Sb., 371/2024 Sb., 315/2025 Sb.)}
+}
+
+@misc{CSU2025LesnictviI,
+  author       = {{\v{C}esk\'{y} statistick\'{y} \'{u}\v{r}ad}},
+  title        = {Indexy cen v~lesnictv\'{i} (surov\'{e} d\v{r}\'{i}v\'{i}) -- 1.~{\v{c}}tvrtlet\'{i} 2025},
+  year         = {2025},
+  howpublished = {{\v{C}}S{\'U}, k{\'o}d publikace 011035-25},
+  url          = {https://csu.gov.cz/produkty/indexy-cen-v-lesnictvi-surove-drivi-1-ctvrtleti-2025}
+}
+
+@misc{CesmadBohemia2024,
+  author       = {{Sdru\v{z}en\'{i} \v{C}ESMAD Bohemia}},
+  title        = {Statistick\'{y} p\v{r}ehled n\'{a}kladovosti siln\v{i}\v{c}n\'{i} n\'{a}kladn\'{i} dopravy 2024},
+  howpublished = {Sdru\v{z}en\'{i} automobilov\'{y}ch dopravc\r{u} \v{C}R, Praha},
+  year         = {2024},
+  url          = {https://www.cesmad.com/cs}
+}
+
+@misc{REDIII2023,
+  author       = {{European Parliament and Council of the European Union}},
+  title        = {Directive ({EU}) 2023/2413 amending Directive ({EU}) 2018/2001 as regards the promotion of energy from renewable sources},
+  howpublished = {Official Journal of the European Union, L, 2023/2413},
+  year         = {2023},
+  note         = {Entry into force: 20 November 2023}
+}
+
+@misc{eea_2025,
+  author       = {{European Environment Agency}},
+  title        = {Share of energy consumption from renewable sources in {Europe}},
+  year         = {2026},
+  howpublished = {EEA Indicator},
+  url          = {https://www.eea.europa.eu/en/analysis/indicators/share-of-energy-consumption-from},
+  urldate      = {2026-04-26}
+}
+
+@misc{eurostat_2025,
+  author       = {{Eurostat}},
+  title        = {Renewable energy statistics --- Statistics Explained},
+  year         = {2025},
+  howpublished = {Eurostat},
+  url          = {https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Renewable_energy_statistics},
+  urldate      = {2026-04-26}
+}
+
+@techreport{ren21_2025,
+  author       = {{REN21}},
+  title        = {Renewables 2025 Global Status Report: Renewables in Energy Supply -- Bioenergy},
+  institution  = {REN21 Secretariat},
+  address      = {Paris},
+  year         = {2025},
+  url          = {https://www.ren21.net/gsr-2025/},
+  urldate      = {2026-04-19}
+}
+
+@techreport{irena_2015,
+  author       = {{IRENA}},
+  title        = {Biomass for Heat and Power: Technology Brief},
+  institution  = {International Renewable Energy Agency},
+  address      = {Abu Dhabi},
+  year         = {2015},
+  url          = {https://www.irena.org/publications/2015/Jan/Biomass-for-Heat-and-Power},
+  urldate      = {2026-04-19}
+}
+
+@misc{ctcn_2017,
+  author       = {{Climate Technology Centre and Network}},
+  title        = {Biomass combustion and co-firing for electricity and heat},
+  year         = {2017},
+  howpublished = {Online},
+  url          = {https://www.ctc-n.org/technologies/biomass-combustion-and-co-firing-electricty-and-heat},
+  urldate      = {2026-04-19}
+}
+
+@article{roman_2024,
+  author  = {Roman, Kamil and Grzegorzewska, Emilia and Roman, Micha{\l}},
+  title   = {Analysis of the Energy and Emission Performance of an~Automatic Biomass Boiler in~the~Context of Efficient Heat Management},
+  journal = {Energies},
+  volume  = {17},
+  number  = {23},
+  pages   = {5885},
+  year    = {2024},
+  doi     = {10.3390/en17235885}
+}
+
+@misc{oEnergetice2025_podpora,
+  author       = {{oEnergetice.cz}},
+  title        = {Ministerstvo spustilo programy na~podporu biomasy a~alternativn{\'\i}ch zdroj{\r{u}}},
+  year         = {2025},
+  howpublished = {oEnergetice.cz},
+  url          = {https://oenergetice.cz/obnovitelne-zdroje/ministerstvo-spustilo-programy-na-podporu-biomasy-a-alternativnich-zdroju},
+  urldate      = {2026-04-26}
+}
+
+
+@misc{oEnergetice2025,
+  author       = {{oEnergetice.cz}},
+  title        = {Energetick{\'y} report za~rok 2025: P\v{r}ehled o~v{\'y}rob{\v{e}} a~spot\v{r}eb{\v{e}} elekt\v{r}iny v~{\v{C}}esk{\'e} republice},
+  howpublished = {oEnergetice.cz -- Energostat},
+  year         = {2025},
+  url          = {https://oenergetice.cz/energostat/report/rocni/2025},
+  note         = {[cit. 2026-03-23]}
+}
+
+
+@techreport{MPO2024oze,
+  author      = {{Ministerstvo pr{\r{u}}myslu a~obchodu {\v{C}}R}},
+  title       = {Obnoviteln{\'e} zdroje energie v~letech 2022 a~2023},
+  institution = {Ministerstvo pr{\r{u}}myslu a~obchodu},
+  address     = {Praha},
+  year        = {2024},
+  url         = {https://mpo.gov.cz/assets/cz/energetika/statistika/obnovitelne-zdroje-energie/2025/1/Obnovitelne-zdroje-energie-2022-2023_web.pdf}
+}
+
+@misc{FaktaOKlimatu2025,
+  author       = {{Fakta o~klimatu}},
+  title        = {Dekarbonizace tepl{\'a}renstv{\'\i}: jak v~{\v{C}}esku vyrobit dost n{\'\i}zkoemisn{\'\i}ho tepla pro d{\'a}lkov{\'e} vyt{\'a}p{\v{e}}n{\'\i}?},
+  howpublished = {Fakta o~klimatu -- explainer},
+  year         = {2025},
+  url          = {https://faktaoklimatu.cz/explainery/dekarbonizace-teplarenstvi-cr},
+  note         = {Na~z{\'a}klad{\v{e}} dat ER{\'U}, Ro{\v{c}}n{\'\i} zpr{\'a}va o~provozu tepl{\'a}rensk{\'y}ch soustav {\v{C}}R}
+}
+
+@misc{tscr_2024,
+  author       = {{Tepl{\'a}rensk{\'e} sdru{\v{z}}en{\'\i} {\v{C}}esk{\'e} republiky}},
+  title        = {Ceny tepla z~biomasy kv{\r{u}}li ne{\v{c}}innosti vl{\'a}dy v{\'y}razn{\v{e}} vzrostou},
+  year         = {2024},
+  howpublished = {Tiskov{\'a} zpr{\'a}va},
+  url          = {https://tscr.cz/ceny-tepla-z-biomasy-kvuli-necinnosti-vlady-vyrazne-vzrostou/},
+  urldate      = {2026-04-19}
+}
+
+@misc{EuropeanCommission2024,
+  author       = {{European Commission}},
+  title        = {2024 Carbon Market Report: A~Stable and~Well-Functioning Market Driving Emissions Reduction},
+  year         = {2024},
+  howpublished = {DG CLIMA, Climate Action},
+  url          = {https://climate.ec.europa.eu/news-other-reads/news/2024-carbon-market-report-stable-and-well-functioning-market-driving-emissions-reduction-2024-09-12_en}
+}
+
+% ------------------------------------------------------------
+% Kapitola 2 — Teorie rizika a stochastické modelování
+% ------------------------------------------------------------
+
+@book{Knight1921,
+  author    = {Knight, Frank H.},
+  title     = {Risk, Uncertainty and Profit},
+  year      = {1921},
+  publisher = {Houghton Mifflin},
+  address   = {Boston}
+}
+
+@book{Markowitz1952,
+  author  = {Markowitz, Harry},
+  title   = {Portfolio Selection},
+  journal = {The Journal of Finance},
+  volume  = {7},
+  number  = {1},
+  pages   = {77--91},
+  year    = {1952},
+  doi     = {10.2307/2975974},
+  publisher = {Wiley}
+}
+
+@book{Markowitz1959,
+  author    = {Markowitz, Harry M.},
+  title     = {Portfolio Selection: Efficient Diversification of Investments},
+  year      = {1959},
+  publisher = {John Wiley {\&} Sons},
+  address   = {New York}
+}
+
+@book{FotrHnilica2009,
+  author    = {Fotr, Ji{\v{r}}{\'\i} and Hnilica, Ji{\v{r}}{\'\i}},
+  title     = {Aplikovan{\'a} anal{\'y}za rizika ve~finan{\v{c}}n{\'\i}m managementu a~investi{\v{c}}n{\'\i}m rozhodov{\'a}n{\'\i}},
+  year      = {2009},
+  publisher = {Grada Publishing}
+}
+
+@book{fotr_soucek_2011,
+  author    = {Fotr, Ji{\v{r}}{\'\i} and Sou{\v{c}}ek, Ivan},
+  title     = {Investi{\v{c}}n{\'\i} rozhodov{\'a}n{\'\i} a~{\v{r}}{\'\i}zen{\'\i} projekt{\r{u}}: Jak p{\v{r}}ipravovat, financovat a~hodnotit projekty, {\v{r}}{\'\i}dit jejich riziko a~vytv{\'a}{\v{r}}et portfolio projekt{\r{u}}},
+  publisher = {Grada Publishing},
+  address   = {Praha},
+  year      = {2011},
+  pages     = {408},
+  series    = {Expert},
+  isbn      = {978-80-247-3293-0}
+}
+
+@book{BrealeyMyers2020,
+  author    = {Brealey, Richard A. and Myers, Stewart C. and Allen, Franklin},
+  title     = {Principles of Corporate Finance},
+  edition   = {13},
+  publisher = {McGraw-Hill Education},
+  year      = {2020},
+  address   = {New York},
+  isbn      = {978-1-260-01390-0}
+}
+
+@book{Jorion2007,
+  author    = {Jorion, Philippe},
+  title     = {Value at Risk: The New Benchmark for Managing Financial Risk},
+  edition   = {3},
+  publisher = {McGraw-Hill},
+  address   = {New York},
+  year      = {2007},
+  isbn      = {978-0-07-146495-6}
+}
+
+@article{Artzner1999,
+  author  = {Artzner, Philippe and Delbaen, Freddy and Eber, Jean-Marc and Heath, David},
+  title   = {Coherent Measures of Risk},
+  journal = {Mathematical Finance},
+  volume  = {9},
+  number  = {3},
+  pages   = {203--228},
+  year    = {1999},
+  doi     = {10.1111/1467-9965.00068}
+}
+
+@article{Rockafellar2000,
+  author  = {Rockafellar, R. Tyrrell and Uryasev, Stanislav},
+  title   = {Optimization of conditional value-at-risk},
+  journal = {Journal of Risk},
+  volume  = {2},
+  number  = {3},
+  pages   = {21--41},
+  year    = {2000},
+  doi     = {10.21314/JOR.2000.038}
+}
+
+@book{Vose2008,
+  author    = {Vose, David},
+  title     = {Risk analysis: a~quantitative guide},
+  year      = {2008},
+  publisher = {John Wiley \& Sons}
+}
+
+@book{Glasserman2003,
+  author    = {Glasserman, Paul},
+  title     = {Monte Carlo Methods in Financial Engineering},
+  publisher = {Springer},
+  year      = {2003},
+  series    = {Stochastic Modelling and Applied Probability},
+  volume    = {53},
+  address   = {New York},
+  isbn      = {978-0-387-00451-8},
+  doi       = {10.1007/978-0-387-21617-1}
+}
+
+@article{Metropolis1949,
+  author  = {Metropolis, Nicholas and Ulam, Stanislaw},
+  title   = {The {Monte Carlo} method},
+  journal = {Journal of the American Statistical Association},
+  volume  = {44},
+  number  = {247},
+  pages   = {335--341},
+  year    = {1949},
+  doi     = {10.1080/01621459.1949.10483310}
+}
+
+@book{Nelsen2006,
+  author    = {Nelsen, Roger B.},
+  title     = {An Introduction to Copulas},
+  publisher = {Springer},
+  year      = {2006},
+  edition   = {2},
+  series    = {Springer Series in Statistics},
+  address   = {New York},
+  isbn      = {978-0-387-28678-5},
+  doi       = {10.1007/0-387-28678-0}
+}
+
+@book{Hull2018,
+  author    = {Hull, John C.},
+  title     = {Options, Futures, and Other Derivatives},
+  publisher = {Pearson},
+  year      = {2018},
+  edition   = {10},
+  address   = {New York},
+  isbn      = {978-0-13-447208-9}
+}
+
+@book{Saltelli2008,
+  author    = {Saltelli, Andrea and Ratto, Marco and Andres, Terry and Campolongo, Francesca and Cariboni, Jessica and Gatelli, Debora and Saisana, Michaela and Tarantola, Stefano},
+  title     = {Global Sensitivity Analysis: The Primer},
+  publisher = {John Wiley {\&} Sons},
+  year      = {2008},
+  address   = {Chichester},
+  isbn      = {978-0-470-05997-5},
+  doi       = {10.1002/9780470725184}
+}
+
+@article{Tjorve2017,
+  author  = {Tj{\o}rve, Kathleen M. C. and Tj{\o}rve, Even},
+  title   = {The use of {Gompertz} models in growth analyses, and new {Gompertz}-model approach: An addition to the {Unified-Richards} family},
+  journal = {PLOS ONE},
+  volume  = {12},
+  number  = {6},
+  pages   = {e0178691},
+  year    = {2017},
+  doi     = {10.1371/journal.pone.0178691}
+}
+
+@article{spiegel_2021,
+  author  = {Spiegel, Alisa and Britz, Wolfgang and Finger, Robert},
+  title   = {Risk, Risk Aversion, and~Agricultural Technology Adoption --- A~Novel Valuation Method Based on~Real Options and~Inverse Stochastic Dominance},
+  journal = {Q~Open},
+  volume  = {1},
+  number  = {2},
+  pages   = {qoab016},
+  year    = {2021},
+  doi     = {10.1093/qopen/qoab016}
+}
+
+@article{finger_2012,
+  author  = {Finger, Robert},
+  title   = {How strong is the ``natural hedge''? The effects of crop acreage and aggregation levels},
+  journal = {Agricultural Finance Review},
+  volume  = {72},
+  number  = {3},
+  pages   = {388--410},
+  year    = {2012},
+  doi     = {10.1108/00021461211277204}
+}
+
+@article{Schwartz1997,
+  author  = {Schwartz, Eduardo S.},
+  title   = {The Stochastic Behavior of Commodity Prices: Implications for Valuation and Hedging},
+  journal = {The Journal of Finance},
+  volume  = {52},
+  number  = {3},
+  pages   = {923--973},
+  year    = {1997},
+  doi     = {10.1111/j.1540-6261.1997.tb02721.x}
+}
+
+@article{knapek_2024,
+  author       = {Kn{\'a}pek, Jaroslav and Star{\'y}, Old{\v{r}}ich and V{\'a}vrov{\'a}, Kamila and Bem{\v{s}}, J{\'u}lius and Weger, Jan and Hor{\'a}k, Martin},
+  title        = {Modelling the impact of business risk on~the~competitiveness of purpose-grown biomass of annual and~perennial crops},
+  journal      = {Renewable and Sustainable Energy Reviews},
+  volume       = {202},
+  pages        = {114707},
+  year         = {2024},
+  doi          = {10.1016/j.rser.2024.114707}
+}
+
+% ------------------------------------------------------------
+% Kapitola 3 — Metodologie modelu (výnosy, ceny, doprava)
+% ------------------------------------------------------------
+
+@misc{OpenMeteo2023,
+  author       = {{Open-Meteo}},
+  title        = {Open-Meteo -- Free Weather {API}},
+  year         = {2023},
+  url          = {https://open-meteo.com/},
+  note         = {Historical Weather API, accessed 2025}
+}
+
+@article{LEWANDOWSKI2000,
+  author  = {Lewandowski, Iris and Clifton-Brown, J. C. and Scurlock, J. M. O. and Huisman, W.},
+  title   = {{Miscanthus}: {European} experience with a~novel energy crop},
+  journal = {Biomass and Bioenergy},
+  volume  = {19},
+  number  = {4},
+  pages   = {209--227},
+  year    = {2000},
+  doi     = {10.1016/S0961-9534(00)00032-5}
+}
+
+@article{Jørgensen2003,
+  author    = {J{\o}rgensen, Uffe and Mortensen, J{\o}rgen and Kjeldsen, Jens Bonderup and Schwarz, Kai-Uwe},
+  title     = {Establishment, Development and Yield Quality of Fifteen {Miscanthus} Genotypes over Three Years in {Denmark}},
+  journal   = {Acta Agriculturae Scandinavica, Section B --- Soil \& Plant Science},
+  volume    = {53},
+  number    = {4},
+  pages     = {190--199},
+  year      = {2003},
+  publisher = {Taylor \& Francis},
+  doi       = {10.1080/09064710310017605}
+}
+
+@article{Ouattara2021,
+  author  = {Ouattara, Malick and Laurent, Anabelle and Berthou, Magali and Borujerdi, Elsa and Butier, Arnaud and Malvoisin, Pierre and Romelot, Dominique and Loyce, Chantal},
+  title   = {Identifying Factors Explaining Yield Variability of {Miscanthus} $\times$ giganteus and {Miscanthus} sinensis Across Contrasting Environments: Use of an~Agronomic Diagnosis Approach},
+  journal = {BioEnergy Research},
+  volume  = {15},
+  pages   = {1--14},
+  year    = {2022},
+  doi     = {10.1007/s12155-021-10332-x}
+}
+
+@article{abdalla_2024,
+  author    = {Abdalla, Mohamed and Hastings, Astley and Campbell, Grant and Chen, Heyu and Smith, Pete},
+  title     = {Assessing the Sustainability of {Miscanthus} and {Willow} as~Global Bioenergy Crops: Current and~Future Climate Conditions (Part 1)},
+  journal   = {Agronomy},
+  volume    = {14},
+  number    = {12},
+  pages     = {3020},
+  year      = {2024},
+  doi       = {10.3390/agronomy14123020}
+}
+
+@incollection{Verwijst13,
+  author    = {Verwijst, Theo and Lundkvist, Anneli and Edelfeldt, Stina and Albertsson, Johannes},
+  title     = {Development of Sustainable Willow Short Rotation Forestry in~{Northern Europe}},
+  booktitle = {Biomass Now -- Sustainable Growth and Use},
+  publisher = {IntechOpen},
+  address   = {London},
+  year      = {2013},
+  editor    = {Miodrag Darko Matovic},
+  chapter   = {19},
+  doi       = {10.5772/55072}
+}
+
+@article{BACENETTI2016,
+  author  = {Bacenetti, Jacopo and Bergante, Sara and Facciotto, Gianni and Fiala, Marco},
+  title   = {Woody biofuel production from short rotation coppice in~{Italy}: Environmental-impact assessment of different species and~crop management},
+  journal = {Biomass and Bioenergy},
+  volume  = {94},
+  pages   = {209--219},
+  year    = {2016},
+  doi     = {10.1016/j.biombioe.2016.09.002}
+}
+
+@article{Richard2019,
+  author    = {Richard, Benjamin and Richter, Goetz M. and Cerasuolo, Marianna and Shield, Ian},
+  title     = {Optimizing the bioenergy water footprint by selecting {SRC} willow canopy phenotypes: regional scenario simulations},
+  journal   = {Annals of Botany},
+  volume    = {124},
+  number    = {4},
+  pages     = {531--542},
+  year      = {2019},
+  doi       = {10.1093/aob/mcz006}
+}
+
+@article{castellanoalbors_2025,
+  author       = {Castellano Albors, Antonio and Shepherd, Anita and Shield, Ian and Macalpine, William J. and Lindegaard, Kevin and Tubby, Ian and Hastings, Astley},
+  title        = {A~Global Short Rotation Coppice ({SRC}) {Willow} Dataset for the Bioeconomy: Implications for the Yield in~the~{United Kingdom}},
+  journal      = {GCB Bioenergy},
+  volume       = {17},
+  number       = {1},
+  pages        = {e70069},
+  year         = {2025},
+  doi          = {10.1111/gcbb.70069}
+}
+
+@techreport{dimitriou_2015,
+  author       = {Dimitriou, Ioannis and Rutz, Dominik},
+  title        = {Sustainable Short Rotation Coppice: A~Handbook},
+  institution  = {SRCplus Project, WIP Renewable Energies},
+  address      = {Munich, Germany},
+  year         = {2015},
+  url          = {https://www.srcplus.eu/images/Handbook_en.pdf},
+  urldate      = {2026-04-19}
+}
+
+@article{stolarski_2019,
+  author       = {Stolarski, Mariusz J. and Krzy{\.z}aniak, Micha{\l} and Warmi{\'n}ski, Kazimierz and Tworkowski, J{\'o}zef and Szczukowski, Stefan},
+  title        = {Willow production during 12~consecutive years --- The effects of harvest rotation, planting density and~cultivar on biomass yield},
+  journal      = {GCB Bioenergy},
+  volume       = {11},
+  number       = {4},
+  pages        = {635--656},
+  year         = {2019},
+  doi          = {10.1111/gcbb.12583}
+}
+
+@article{larsen_2014,
+  author       = {Larsen, S{\o}ren U. and J{\o}rgensen, Uffe and Kjeldsen, Jens Bonderup and L{\ae}rke, Poul Erik},
+  title        = {Long-term yield effects of establishment method and~weed control in~willow for short rotation coppice ({SRC})},
+  journal      = {Biomass and Bioenergy},
+  volume       = {71},
+  pages        = {266--274},
+  year         = {2014},
+  doi          = {10.1016/j.biombioe.2014.08.036}
+}
+
+@article{santucci_2024,
+  author       = {Santucci, Shane and Eisenbies, Mark and Volk, Timothy A.},
+  title        = {Yield and Survival of 19~Cultivars of Willow (\textit{Salix}~spp.) Biomass Crops over Eight Rotations},
+  journal      = {Forests},
+  volume       = {15},
+  number       = {11},
+  pages        = {2041},
+  year         = {2024},
+  doi          = {10.3390/f15112041}
+}
+
+@article{CliftonBrown2024,
+  author  = {Clifton-Brown, John and Schwarz, Kai-Uwe and Awty-Carroll, Danny and Sheridan, Helen and Iqbal, Yasir and Lewandowski, Iris and Kiesel, Andreas},
+  title   = {Breeding progress and~preparedness for mass-scale deployment of perennial lignocellulosic biomass crops switchgrass, miscanthus, willow and~poplar},
+  journal = {GCB Bioenergy},
+  volume  = {16},
+  number  = {4},
+  pages   = {e13145},
+  year    = {2024},
+  doi     = {10.1111/gcbb.13145}
+}
+
+@misc{Agrodos2024,
+  author       = {{Agrodos s.r.o.}},
+  title        = {Cen{\'\i}k agroslu{\v{z}}eb 2024 -- nakladn{\'\i} doprava},
+  year         = {2024},
+  howpublished = {Online},
+  url          = {https://www.agrodos.cz/cz/agrosluzby/cenik-sluzeb},
+  note         = {Sazby pro 22\,t soupravu: 35\,K{\v{c}}/km bez DPH (j{\'\i}zda), 
+                  700\,K{\v{c}}/h bez DPH (manipulace, nakl{\'a}dka + vykl{\'a}dka). 
+                  [cit.~2026-05-03]}
+}
+
+@misc{AGROCOMHrusovany2025,
+  author       = {{AGROCOM HRU{\v{S}}OVANY spol.~s~r.o.}},
+  title        = {Cen{\'\i}k zem{\v{e}}d{\v{e}}lsk{\'y}ch slu{\v{z}}eb 2025},
+  year         = {2025},
+  howpublished = {Online},
+  url          = {https://www.agrocomhrusovany.cz/node/72905},
+  note         = {Sazba pro nákladní soupravu: 40\,K{\v{c}}/km bez DPH, v{\v{c}}etn{\v{e}} paliva. 
+                  K{\v{r}}{\'\i}{\v{z}}ov{\'a} kontrola sazeb \citep{Agrodos2024}. [cit.~2026-05-03]}
+}
+
+@misc{MiscanthusEU2026,
+  author       = {{Zelena Biomasna Energija d.o.o.}},
+  title        = {Buy High-Quality {Miscanthus} Rhizomes EU},
+  year         = {2026},
+  howpublished = {Online},
+  url          = {https://miscanthus.eu/buy-miscanthus-rhizomes/},
+  note         = {Cen{\'\i}k oddenk{\r{u}} G1/G2 \textit{Miscanthus $\times$ giganteus}:
+                  3\,000--3\,600\,EUR/ha (3--100\,ha kv{\'o}ty), ekvivalent
+                  0{,}38--0{,}45\,EUR/kus p\v{r}i hustot{\v{e}} 8\,000\,ks/ha;
+                  od~0{,}14\,EUR/kus pro velkoobjemov{\'e} kontrakty 500+\,ha.
+                  [cit.~2026-05-04]}
+}
+
+@techreport{Caslin2010,
+  author      = {Caslin, Barry and Finnan, John and Easson, Lindsay},
+  title       = {Miscanthus Best Practice Guidelines},
+  institution = {Teagasc and Agri-Food and Biosciences Institute},
+  year        = {2010},
+  address     = {Ireland},
+  note        = {Sypná hmotnost drcené řezanky Miscanthus při 15--20\,\% vlhkosti
+                 v~rozsahu 100--140~kg/m\textsuperscript{3}}
+}
+
+@article{Smeets2009,
+  author  = {Smeets, Edward M. W. and Lewandowski, Iris M. and Faaij, Andr{\'e} P. C.},
+  title   = {The economical and environmental performance of {Miscanthus} and
+             switchgrass production and supply chains in a {European} setting},
+  journal = {Renewable and Sustainable Energy Reviews},
+  volume  = {13},
+  number  = {6--7},
+  pages   = {1230--1245},
+  year    = {2009},
+  doi     = {10.1016/j.rser.2008.09.006}
+}
+
+@article{Stolarski2019Chip,
+  author  = {Stolarski, Mariusz J. and Krzy{\.z}aniak, Micha{\l} and {\v S}nieg, Marek
+             and Slominska, Ewelina and Piorkowski, Mariusz and Filipkowski, Roman},
+  title   = {Effect of harvest technology on the supply chain of willow biomass},
+  journal = {Biomass and Bioenergy},
+  volume  = {126},
+  pages   = {27--36},
+  year    = {2019},
+  doi     = {10.1016/j.biombioe.2019.05.009},
+  note    = {Sypná hmotnost \v{c}erstv\'{e} d\v{r}evn\'{i} \v{s}t\v{e}pky SRC vrby
+             $\sim$330~kg/m\textsuperscript{3} p\v{r}i vlhkosti 50--55\,\%}
+}
+
+@book{KloedenPlaten1992,
+  author    = {Kloeden, Peter E. and Platen, Eckhard},
+  title     = {Numerical Solution of Stochastic Differential Equations},
+  publisher = {Springer},
+  address   = {Berlin, Heidelberg},
+  year      = {1992},
+  series    = {Stochastic Modelling and Applied Probability},
+  note      = {Kanonická reference pro numerické sch\'{e}mata SDE,
+               v\v{c}etn\v{e} Eulerova--Maruyamova}
+}
+
+@misc{AKOBlatny2025,
+  author       = {{AKO Blatn\'{y} s.r.o.}},
+  title        = {Cen\'{i}k autodopravy a~prac\'{i} stroj\r{u}},
+  year         = {2025},
+  month        = mar,
+  howpublished = {Online},
+  url          = {https://www.akoblatny.cz/cenik/},
+  note         = {Platnost od~1.~3.~2025. MAN 8$\times$4 + vlek (souprava
+                  $\sim$26~t): 49~K\v{c}/km, 1100~K\v{c}/h, manipulace
+                  100~K\v{c}/15~min, ceny bez~DPH. [cit.~2026-05-06]}
+}
+
+@article{Sharpe1966,
+  author  = {Sharpe, William F.},
+  title   = {Mutual Fund Performance},
+  journal = {The Journal of Business},
+  volume  = {39},
+  number  = {1},
+  pages   = {119--138},
+  year    = {1966},
+  doi     = {10.1086/294846},
+  note    = {P{\r{u}}vodn{\'\i} formulace ``reward-to-variability ratio'',
+             pozd{\v{e}}ji zn{\'a}m{\'e}ho jako Sharpe ratio.}
+}
+
+@article{Robichek1966,
+  author  = {Robichek, Alexander A. and Myers, Stewart C.},
+  title   = {Conceptual Problems in the Use of Risk-Adjusted Discount Rates},
+  journal = {The Journal of Finance},
+  volume  = {21},
+  number  = {4},
+  pages   = {727--730},
+  year    = {1966},
+  month   = dec,
+  doi     = {10.1111/j.1540-6261.1966.tb00277.x},
+  note    = {P{\r{u}}vodn{\'\i} kritika RADR p{\v{r}}{\'\i}stupu, vč.
+             probl{\'e}mu double-counting rizika.}
+}
+
+@book{Damodaran2008,
+  author    = {Damodaran, Aswath},
+  title     = {Strategic Risk Taking: A~Framework for Risk Management},
+  publisher = {Wharton School Publishing},
+  address   = {Upper Saddle River, NJ},
+  year      = {2008},
+  isbn      = {978-0-13-199006-8},
+  note      = {Kap.~5 ``Risk Adjusted Value'': diskuze o~double-counting
+               rizika p{\v{r}}i kombinaci RADR s~jin{\'y}mi metodami
+               rizikov{\'e} korekce.}
+}
