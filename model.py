@@ -386,6 +386,15 @@ CROP_COLOR = {
 }
 
 
+def crop_display(crop_key, lang):
+    """Zobrazovaný název plodiny dle jazyka. Interní klíč zůstává 'SRC Vrba'."""
+    if crop_key in ("SRC Vrba", "SRC", "src"):
+        return "RRD vrba" if lang == "cs" else "SRC willow"
+    if crop_key in ("Miscanthus", "M_giganteus", "misc"):
+        return "Miscanthus"
+    return crop_key
+
+
 def fmt_eur_cs(val, decimals=0):
     """České formátování: 1 234 567 € (mezery jako oddělovač tisíců)."""
     if val is None or (isinstance(val, float) and (np.isnan(val) or np.isinf(val))):
@@ -1242,7 +1251,11 @@ def simulate_src(n_sim, years, params, yield_bounds, tech_type, subsidy_perc,
     # ROK 1: sadba + výsadba + údržba 1. roku + fixní
     sadebni_material = params["hustota_vysadby"] * params["cena_sadby_ks"]
     udrzba_y12_half  = params["udrzba_1_2_rok"] / 2.0
-    capex_y1_base    = sadebni_material + params["mech_vysadba"] + udrzba_y12_half
+    # mech_vysadba se počítá automaticky (hustota × cena výsadby/ks);
+    # fallback zajišťuje funkčnost i pro params z DEFAULT_COSTS (compare, diverzifikace)
+    mech_vysadba     = params.get("mech_vysadba",
+                                  params["hustota_vysadby"] * params["cena_vysadby_ks"])
+    capex_y1_base    = sadebni_material + mech_vysadba + udrzba_y12_half
     capex_y1         = np.random.normal(capex_y1_base,
                                          params.get("capex_std", 150.0), n_sim)
     cf[1, :] = -capex_y1 * (1.0 - subsidy_perc) - fixed_yearly
@@ -1451,7 +1464,7 @@ def _fmt_yr(val):
         return "N/A"
     return f"{val:.2f}"
 
-def render_recap_table(summary_data: list, T: dict) -> str:
+def render_recap_table(summary_data: list, T: dict, lang: str = "cs") -> str:
     rc   = T["recap_cols"]
     crop = T["recap_crop"]
 
@@ -1480,7 +1493,7 @@ def render_recap_table(summary_data: list, T: dict) -> str:
         td = TD_E if i % 2 == 0 else TD_O
         payback = row.get("Doba návratnosti (roky)")
         cells = [
-            f"<td style='{td}'><b>{row['Plodina']}</b></td>",
+            f"<td style='{td}'><b>{crop_display(row['Plodina'], lang)}</b></td>",
             f"<td style='{td}'>{_fmt_eur(row['Průměrný Zisk'])}</td>",
             f"<td style='{td}'>{_fmt_eur(row['EAA (EUR/rok)'])}</td>",
             f"<td style='{td}'>{_fmt_eur(row['Potenciál (95%)'])}</td>",
@@ -1970,7 +1983,7 @@ def _render_crop_costs(crop_label, crop_key, color_dark, color_main):
 
     st.markdown(
         f"<h3 style='text-align:center;color:{color_dark};margin-top:0'>"
-        f"{'🌾' if is_misc else '🌳'} {crop_label}</h3>",
+        f"{'🌾' if is_misc else '🌳'} {crop_display(crop_label, lang_code)}</h3>",
         unsafe_allow_html=True)
 
     # ---------- Sekce 1: Příprava + výsadba (jednorázově) ----------
@@ -2180,7 +2193,8 @@ if run_clicked:
                 y_bounds = YIELD_DATA[detected_zone_key][soil_key][yk]
             except KeyError:
                 y_bounds = [5, 10]
-                st.warning(T["warn_missing"].format(crop=plodina, zone=detected_zone_label))
+                st.warning(T["warn_missing"].format(
+                    crop=crop_display(plodina, lang_code), zone=detected_zone_label))
 
             if plodina == "M_giganteus":
                 params = editable_costs["Miscanthus"]
@@ -2504,7 +2518,7 @@ with tab_overview:
                            else f"{m['payback_prob']:.4%}")
             hero_inner += f"""
 <div style='border-left:4px solid {crop_color};padding-left:14px;margin-bottom:14px'>
-  <div class='hero-title' style='margin-bottom:10px'>{crop_icon} {plodina}</div>
+  <div class='hero-title' style='margin-bottom:10px'>{crop_icon} {crop_display(plodina, st.session_state["lang"])}</div>
   <div class='hero-grid'>
     <div class='hero-item'><div class='hero-label'>{T['hero_label_npv']}</div>
       <div class='hero-value'>{fmt_eur_cs(m['mean_profit'])}</div></div>
@@ -2537,7 +2551,7 @@ with tab_overview:
             fig.add_trace(go.Scatter(x=yrs, y=mean_cf, name=T["cf_mean"],
                                       line=dict(color=color, width=3)))
             fig.update_layout(
-                title=f"{plodina} ({sim_area:.0f} ha)",
+                title=f"{crop_display(plodina, st.session_state['lang'])} ({sim_area:.0f} ha)",
                 xaxis_title=T["cf_xaxis"], yaxis_title=T["cf_yaxis"],
                 height=360, margin=dict(t=40, b=40),
             )
@@ -2552,7 +2566,7 @@ with tab_overview:
                 marker=dict(color=color, line=dict(color="white", width=0.5)),
             )])
             fig.update_layout(
-                title=f"{plodina}", xaxis_title=T["hist_xaxis"], yaxis_title=T["hist_yaxis"],
+                title=f"{crop_display(plodina, st.session_state['lang'])}", xaxis_title=T["hist_xaxis"], yaxis_title=T["hist_yaxis"],
                 height=320, margin=dict(t=40, b=40),
             )
             st.plotly_chart(fig, use_container_width=True, key=f"hist_tab_{plodina}")
@@ -2572,7 +2586,7 @@ with tab_overview:
             fig = go.Figure(data=[go.Histogram(
                 x=eaas, nbinsx=50,
                 marker=dict(color=color, line=dict(color="white", width=0.5)),
-                name=plodina,
+                name=crop_display(plodina, st.session_state["lang"]),
             )])
             # Vertikální čáry: nula, průměr, VaR 5%, CVaR 5%
             fig.add_vline(x=0, line=dict(color="black", width=1, dash="dot"),
@@ -2592,7 +2606,7 @@ with tab_overview:
             p5_fmt = f"{p5_eaa:,.0f}".replace(",", " ")
             fig.update_layout(
                 title=T["eaa_hist_title"].format(
-                    crop=plodina, median=median_fmt, p5=p5_fmt),
+                    crop=crop_display(plodina, st.session_state["lang"]), median=median_fmt, p5=p5_fmt),
                 xaxis_title=xaxis_title, yaxis_title=yaxis_title,
                 height=340, margin=dict(t=50, b=40),
                 showlegend=False,
@@ -2602,7 +2616,7 @@ with tab_overview:
         # Rekapitulační tabulka – pokud 2 plodiny
         if len(sim_summary) > 1:
             st.subheader("🏆 " + T["recap_header"].lstrip("🏆 "))
-            st.markdown(render_recap_table(sim_summary, T), unsafe_allow_html=True)
+            st.markdown(render_recap_table(sim_summary, T, st.session_state["lang"]), unsafe_allow_html=True)
 
 # ----- TAB 2: VÝNOSY & CENY -----------------------------------------------
 with tab_yields:
@@ -2623,7 +2637,7 @@ with tab_yields:
                                       line=dict(width=0), showlegend=False))
             fig.add_trace(go.Scatter(x=yrs, y=my, name=T["yield_mean"],
                                       line=dict(color=color, width=3)))
-            fig.update_layout(title=f"{plodina}",
+            fig.update_layout(title=f"{crop_display(plodina, st.session_state['lang'])}",
                                xaxis_title=T["yield_xaxis"], yaxis_title=T["yield_yaxis"],
                                height=360, margin=dict(t=40, b=40))
             st.plotly_chart(fig, use_container_width=True, key=f"yield_tab_{plodina}")
@@ -2642,7 +2656,7 @@ with tab_yields:
                                       line=dict(width=0), showlegend=False))
             fig.add_trace(go.Scatter(x=yrs, y=mp, name=T["price_mean"],
                                       line=dict(color=color, width=3)))
-            fig.update_layout(title=f"{plodina}",
+            fig.update_layout(title=f"{crop_display(plodina, st.session_state['lang'])}",
                                xaxis_title=T["price_xaxis"], yaxis_title=T["price_yaxis"],
                                height=360, margin=dict(t=40, b=40))
             st.plotly_chart(fig, use_container_width=True, key=f"price_tab_{plodina}")
@@ -2694,7 +2708,7 @@ with tab_yields:
                 mode="lines",
             ))
             fig.update_layout(
-                title=f"{plodina}",
+                title=f"{crop_display(plodina, st.session_state['lang'])}",
                 xaxis_title=T["costs_x_axis"],
                 yaxis_title=T["costs_y_axis"],
                 barmode="stack",
@@ -2761,7 +2775,7 @@ with tab_risk:
         for plodina, data in sim_results.items():
             m = data["metrics"]
             color = COLOR_MISC_DARK if data["type"] == "misc" else COLOR_SRC_DARK
-            st.markdown(f"<h4 style='color:{color};margin-top:12px'>{plodina}</h4>",
+            st.markdown(f"<h4 style='color:{color};margin-top:12px'>{crop_display(plodina, st.session_state['lang'])}</h4>",
                          unsafe_allow_html=True)
             # 1. řádek: NPV-based metriky (celkové)
             st.markdown(f"<p style='color:#666;font-size:13px;margin:4px 0 6px;'>"
@@ -2798,7 +2812,7 @@ with tab_risk:
                 fig = go.Figure(data=[go.Histogram(
                     x=data["succ_pb"]+1, marker=dict(color=color, line=dict(color="white", width=0.5)),
                 )])
-                fig.update_layout(title=f"{plodina}", xaxis_title=T["payback_xaxis"],
+                fig.update_layout(title=f"{crop_display(plodina, st.session_state['lang'])}", xaxis_title=T["payback_xaxis"],
                                    yaxis_title=T["payback_yaxis"], height=320,
                                    margin=dict(t=40, b=40))
                 st.plotly_chart(fig, use_container_width=True, key=f"pb_tab_{plodina}")
@@ -2808,9 +2822,9 @@ with tab_risk:
         st.markdown(T["sens_desc"])
         for plodina, data in sim_results.items():
             color = COLOR_MISC_DARK if data["type"] == "misc" else COLOR_SRC_DARK
-            st.markdown(f"<h4 style='color:{color};margin-top:8px'>{plodina}</h4>",
+            st.markdown(f"<h4 style='color:{color};margin-top:8px'>{crop_display(plodina, st.session_state['lang'])}</h4>",
                          unsafe_allow_html=True)
-            with st.spinner(T["sens_spinner"].format(crop=plodina)):
+            with st.spinner(T["sens_spinner"].format(crop=crop_display(plodina, st.session_state['lang']))):
                 xv, yv, zm = calculate_sensitivity_matrix(
                     data["type"], data["years"], data["params"], data["y_bounds"],
                     "Direct Chip" if data["type"] == "src" else None,
@@ -2865,7 +2879,7 @@ with tab_irr:
                 median_irr = mean_irr = std_irr = float("nan")
                 p5_irr = p25_irr = p75_irr = float("nan")
             irr_rows.append({
-                T["compare_col_plodina"]: plodina,
+                T["compare_col_plodina"]: crop_display(plodina, st.session_state["lang"]),
                 T["irr_valid_col"]: f"{int(dist['valid'].sum())} / {len(dist['irrs'])}",
                 "Median IRR":      median_irr,
                 "Mean IRR":        mean_irr,
@@ -2895,8 +2909,9 @@ with tab_irr:
             if len(valid_irrs) == 0:
                 continue
             color = CROP_COLORS.get(plodina, "#1f77b4")
+            crop_lbl = crop_display(plodina, st.session_state["lang"])
             fig_irr.add_trace(go.Histogram(
-                x=valid_irrs, name=plodina, opacity=0.65,
+                x=valid_irrs, name=crop_lbl, opacity=0.65,
                 nbinsx=60, marker_color=color,
                 hovertemplate=T["irr_hover_count"],
             ))
@@ -2904,7 +2919,7 @@ with tab_irr:
             median_pct = float(np.median(valid_irrs))
             fig_irr.add_vline(x=median_pct, line_dash="dash",
                               line_color=color, line_width=2, opacity=0.8,
-                              annotation_text=f"Median {plodina}: {median_pct:.1f} %",
+                              annotation_text=f"Median {crop_lbl}: {median_pct:.1f} %",
                               annotation_position="top",
                               annotation_font_size=9)
 
@@ -2937,12 +2952,12 @@ with tab_sens:
 
         for plodina, data in sim_results.items():
             color = COLOR_MISC_DARK if data["type"] == "misc" else COLOR_SRC_DARK
-            st.markdown(f"<h3 style='color:{color}'>{plodina}</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color:{color}'>{crop_display(plodina, lang_sa)}</h3>", unsafe_allow_html=True)
             all_sa = {}
             sa_bar = st.progress(0)
             for idx, pk in enumerate(sim_sa_sel):
                 with st.spinner(SA["sa_running"].format(
-                        crop=plodina, param=param_labels_full[pk])):
+                        crop=crop_display(plodina, lang_sa), param=param_labels_full[pk])):
                     all_sa[pk] = run_param_sensitivity(
                         param_key=pk, base_params=data["params"],
                         y_bounds=data["y_bounds"], crop_type=data["type"],
@@ -3013,7 +3028,7 @@ COMPARE_T = {
     "cs": {
         "header":     "Srovnání 4 kvalit půdy × 2 plodiny",
         "desc":       ("Spustí 8 nezávislých Monte Carlo simulací (4 kvality půdy × "
-                       "Miscanthus + SRC vrba) v aktuálně vybrané klimatické zóně. "
+                       "Miscanthus + RRD vrba) v aktuálně vybrané klimatické zóně. "
                        "Výsledek je risk–return scatter graf pro vyhodnocení, "
                        "kde leží efektivní volby investora."),
         "btn":        "🚀 Spustit srovnání 8 konfigurací",
@@ -3164,242 +3179,275 @@ def _run_compare_scenarios(zone_label, area_ha, n_sim_compare, subsidy_pct,
     return out
 
 
-with tab_compare:
+@st.fragment
+def _render_compare_fragment(detected_zone_key, detected_zone_label,
+                             plocha_ha, n_sim, subsidy_pct, discount_pct,
+                             rho_input, drift_pct, cost_esc_pct, pachtovne,
+                             editable_costs, lang_code, T, COMPARE_T):
+    """Izolovaný fragment srovnání kvalit půdy.
+
+    Fragment zabraňuje resetu st.tabs() na první záložku po kliknutí na
+    tlačítko (Streamlit ≥ 1.53). Výsledky se ukládají do session_state
+    (compare_results), takže přežijí rerun fragmentu.
+
+    Lookupy do YIELD_DATA jdou přes KANONICKÝ český klíč detected_zone_key,
+    zatímco zobrazení uživateli používá přeložený detected_zone_label.
+    """
     st.subheader("📈 " + COMPARE_T["header"])
     st.markdown(COMPARE_T["desc"])
 
-    if not detected_zone_label or detected_zone_label not in YIELD_DATA:
+    if not detected_zone_key or detected_zone_key not in YIELD_DATA:
         st.warning(COMPARE_T["warn_zone"])
-    else:
-        st.info(T["compare_meta_info"].format(
-            zone=detected_zone_label, area=plocha_ha, n=n_sim))
+        return
 
-        if st.button(COMPARE_T["btn"], type="primary", key="btn_compare_run"):
-            with st.spinner(COMPARE_T["spinner"]):
-                cmp_n_sim = n_sim
-                cmp_res = _run_compare_scenarios(
-                    detected_zone_label, plocha_ha, cmp_n_sim,
-                    subsidy_pct, discount_pct, rho_input, drift_pct,
-                    cost_esc_pct, pachtovne, editable_costs)
-                st.session_state["compare_results"] = cmp_res
+    st.info(T["compare_meta_info"].format(
+        zone=detected_zone_label, area=plocha_ha, n=n_sim))
 
-        cmp_res = st.session_state.get("compare_results", [])
-        if cmp_res:
-            import pandas as pd
+    if st.button(COMPARE_T["btn"], type="primary", key="btn_compare_run"):
+        with st.spinner(COMPARE_T["spinner"]):
+            cmp_n_sim = n_sim
+            cmp_res = _run_compare_scenarios(
+                detected_zone_key, plocha_ha, cmp_n_sim,
+                subsidy_pct, discount_pct, rho_input, drift_pct,
+                cost_esc_pct, pachtovne, editable_costs)
+            st.session_state["compare_results"] = cmp_res
 
-            # Helper: podbarvení řádku dle plodiny
-            def _highlight_crop(row):
-                if row["Plodina"] == "Miscanthus":
-                    return ["background-color: #DCEDC8"] * len(row)  # světle zelená
-                elif row["Plodina"] == "SRC Vrba":
-                    return ["background-color: #5D4037; color: white"] * len(row)  # tmavá hnědá
-                return [""] * len(row)
+    cmp_res = st.session_state.get("compare_results", [])
+    if cmp_res:
+        import pandas as pd
 
-            # Fallback: pokud user nemá vybranou plodinu v sekci 2, použij DEFAULT_COSTS
-            from copy import deepcopy as _dc
-            crop_params = {
-                "Miscanthus": _dc(DEFAULT_COSTS["Miscanthus"]),
-                "SRC Vrba":   _dc(DEFAULT_COSTS["SRC Vrba"]),
-            }
-            crop_params["Miscanthus"].update(editable_costs.get("Miscanthus", {}))
-            crop_params["SRC Vrba"].update(editable_costs.get("SRC Vrba", {}))
+        # Helper: podbarvení řádku dle plodiny. Testuje INTERNÍ klíč i obě
+        # jazykové display varianty, aby fungoval nezávisle na tom, zda se
+        # sloupec přemapuje na display label před nebo po stylování.
+        def _highlight_crop(row):
+            crop_val = row["Plodina"]
+            if crop_val in ("Miscanthus", "M_giganteus"):
+                return ["background-color: #DCEDC8"] * len(row)  # světle zelená
+            elif crop_val in ("SRC Vrba", "RRD vrba", "SRC willow"):
+                return ["background-color: #5D4037; color: white"] * len(row)  # tmavá hnědá
+            return [""] * len(row)
 
-            # ---------- 1) Tabulka vstupních parametrů ----------
-            st.divider()
-            st.markdown("### " + COMPARE_T["params_t"])
-            params_rows = []
-            for r in cmp_res:
-                cp = crop_params["Miscanthus" if r["Plodina"] == "Miscanthus" else "SRC Vrba"]
-                params_rows.append({
-                    "Plodina":              r["Plodina"],
-                    "Kvalita půdy":         r["Půda"],
-                    "Y_min (t DM/ha)":      int(r["Y_min"]),
-                    "Y_max (t DM/ha)":      int(r["Y_max"]),
-                    "Životnost (let)":      int(cp["zivotnost"]),
-                    "Default cena (€/t DM)": int(round(cp["prodejni_cena_start"])),
-                    "Roční údržba (€/ha)":  int(round(cp["udrzba_rocni"])),
-                })
-            df_params = pd.DataFrame(params_rows)
-            st.dataframe(
-                df_params.style.apply(_highlight_crop, axis=1).format({
-                    "Y_min (t DM/ha)":      "{:d}",
-                    "Y_max (t DM/ha)":      "{:d}",
-                    "Životnost (let)":      "{:d}",
-                    "Default cena (€/t DM)": "{:d}",
-                    "Roční údržba (€/ha)":  "{:d}",
-                }),
-                use_container_width=True, hide_index=True,
-            )
-            st.caption(T["compare_common_params"].format(
-                zone=detected_zone_label, area=plocha_ha,
-                subsidy=subsidy_pct, discount=discount_pct,
-                rho=rho_input, drift=drift_pct,
-                esc=cost_esc_pct, rent=pachtovne,
+        # Fallback: pokud user nemá vybranou plodinu v sekci 2, použij DEFAULT_COSTS
+        from copy import deepcopy as _dc
+        crop_params = {
+            "Miscanthus": _dc(DEFAULT_COSTS["Miscanthus"]),
+            "SRC Vrba":   _dc(DEFAULT_COSTS["SRC Vrba"]),
+        }
+        crop_params["Miscanthus"].update(editable_costs.get("Miscanthus", {}))
+        crop_params["SRC Vrba"].update(editable_costs.get("SRC Vrba", {}))
+
+        # ---------- 1) Tabulka vstupních parametrů ----------
+        st.divider()
+        st.markdown("### " + COMPARE_T["params_t"])
+        params_rows = []
+        for r in cmp_res:
+            cp = crop_params["Miscanthus" if r["Plodina"] == "Miscanthus" else "SRC Vrba"]
+            params_rows.append({
+                # Zobrazený label plodiny (interní klíč zůstává v cmp_res)
+                "Plodina":              crop_display(r["Plodina"], lang_code),
+                "Kvalita půdy":         r["Půda"],
+                "Y_min (t DM/ha)":      int(r["Y_min"]),
+                "Y_max (t DM/ha)":      int(r["Y_max"]),
+                "Životnost (let)":      int(cp["zivotnost"]),
+                "Default cena (€/t DM)": int(round(cp["prodejni_cena_start"])),
+                "Roční údržba (€/ha)":  int(round(cp["udrzba_rocni"])),
+            })
+        df_params = pd.DataFrame(params_rows)
+        st.dataframe(
+            df_params.style.apply(_highlight_crop, axis=1).format({
+                "Y_min (t DM/ha)":      "{:d}",
+                "Y_max (t DM/ha)":      "{:d}",
+                "Životnost (let)":      "{:d}",
+                "Default cena (€/t DM)": "{:d}",
+                "Roční údržba (€/ha)":  "{:d}",
+            }),
+            use_container_width=True, hide_index=True,
+        )
+        st.caption(T["compare_common_params"].format(
+            zone=detected_zone_label, area=plocha_ha,
+            subsidy=subsidy_pct, discount=discount_pct,
+            rho=rho_input, drift=drift_pct,
+            esc=cost_esc_pct, rent=pachtovne,
+        ))
+
+        # ---------- 2) Risk-return scatter ----------
+        st.divider()
+        st.markdown("### " + COMPARE_T["scatter_t"])
+        st.info(COMPARE_T["ideal_note"])
+
+        # Mapy pro barvy a tvary
+        soil_colors = {
+            "Optimální":  "#33691E",  # tmavě zelená
+            "Průměrná":   "#FBC02D",  # žlutá
+            "Neúrodná":   "#FB8C00",  # oranžová
+            "Nevhodná":   "#9E9E9E",  # šedá
+        }
+        crop_symbols = {"Miscanthus": "circle", "SRC Vrba": "diamond"}
+
+        fig_sc = go.Figure()
+        for r in cmp_res:
+            lbl = ("M" if r["Plodina"] == "Miscanthus" else "S") + " · " + r["Půda"][:4]
+            crop_lbl = crop_display(r["Plodina"], lang_code)
+            size = 14 + 26 * max(0, min(1, r["P(NPV>0)"]))  # 14-40 px
+            # Markowitz konvence: X = riziko (σ), Y = výnos (EAA)
+            fig_sc.add_trace(go.Scatter(
+                x=[r["σ ročního CF"]], y=[r["EAA"]],
+                mode="markers+text",
+                name=lbl,
+                marker=dict(
+                    symbol=crop_symbols[r["Plodina"]],
+                    color=soil_colors[r["Půda"]],
+                    size=size,
+                    line=dict(color="#000", width=1),
+                ),
+                text=[lbl], textposition="top center",
+                textfont=dict(size=10),
+                hovertemplate=(
+                    f"<b>{crop_lbl} × {r['Půda']}</b><br>"
+                    f"Mean EAA: {r['EAA']:,.0f} €/rok<br>"
+                    f"σ ročního CF: {r['σ ročního CF']:,.0f} €/rok<br>"
+                    f"VaR 5%: {r['VaR 5%']:,.0f} €<br>"
+                    f"CVaR 5%: {r['CVaR 5%']:,.0f} €<br>"
+                    f"P(NPV>0): {r['P(NPV>0)']:.1%}<br>"
+                    f"<extra></extra>".replace(",", " ")
+                ),
+                showlegend=False,
             ))
+        # Kvadrant guide: cross-hair na medianech
+        mn = np.median([r["EAA"] for r in cmp_res])
+        sd = np.median([r["σ ročního CF"] for r in cmp_res])
+        fig_sc.add_hline(y=mn, line=dict(dash="dot", color="#888", width=1),
+                          annotation_text=T["compare_median_eaa"],
+                          annotation_position="left")
+        fig_sc.add_vline(x=sd, line=dict(dash="dot", color="#888", width=1),
+                          annotation_text=T["compare_median_sigma"],
+                          annotation_position="top")
+        # Zvýraznit "ideální" oblast (vlevo nahoře = nízké σ + vysoké EAA)
+        x_min = min(r["σ ročního CF"] for r in cmp_res) * 0.9
+        y_max_v = max(r["EAA"] for r in cmp_res) * 1.05
+        fig_sc.add_shape(type="rect", x0=x_min, x1=sd, y0=mn, y1=y_max_v,
+                          fillcolor="rgba(76,175,80,0.06)", line=dict(width=0),
+                          layer="below")
+        fig_sc.update_layout(
+            xaxis_title=COMPARE_T["scatter_x"],
+            yaxis_title=COMPARE_T["scatter_y"],
+            height=560, margin=dict(t=30, b=50, l=10, r=10),
+            hovermode="closest",
+        )
+        st.plotly_chart(fig_sc, use_container_width=True, key="compare_scatter")
 
-            # ---------- 2) Risk-return scatter ----------
-            st.divider()
-            st.markdown("### " + COMPARE_T["scatter_t"])
-            st.info(COMPARE_T["ideal_note"])
+        # Legenda manuálně (čistý markdown bez div, aby se renderoval bold)
+        legend_md = T["compare_legend"]
+        st.markdown(legend_md)
 
-            # Mapy pro barvy a tvary
-            soil_colors = {
-                "Optimální":  "#33691E",  # tmavě zelená
-                "Průměrná":   "#FBC02D",  # žlutá
-                "Neúrodná":   "#FB8C00",  # oranžová
-                "Nevhodná":   "#9E9E9E",  # šedá
-            }
-            crop_symbols = {"Miscanthus": "circle", "SRC Vrba": "diamond"}
+        # ---------- 3) Downside risk scatter (CVaR vs EAA) -----------
+        st.divider()
+        st.markdown("### " + COMPARE_T["scatter_cvar_t"])
+        st.info(COMPARE_T["scatter_cvar_note"])
 
-            fig_sc = go.Figure()
-            for r in cmp_res:
-                lbl = ("M" if r["Plodina"] == "Miscanthus" else "S") + " · " + r["Půda"][:4]
-                size = 14 + 26 * max(0, min(1, r["P(NPV>0)"]))  # 14-40 px
-                # Markowitz konvence: X = riziko (σ), Y = výnos (EAA)
-                fig_sc.add_trace(go.Scatter(
-                    x=[r["σ ročního CF"]], y=[r["EAA"]],
-                    mode="markers+text",
-                    name=lbl,
-                    marker=dict(
-                        symbol=crop_symbols[r["Plodina"]],
-                        color=soil_colors[r["Půda"]],
-                        size=size,
-                        line=dict(color="#000", width=1),
-                    ),
-                    text=[lbl], textposition="top center",
-                    textfont=dict(size=10),
-                    hovertemplate=(
-                        f"<b>{r['Plodina']} × {r['Půda']}</b><br>"
-                        f"Mean EAA: {r['EAA']:,.0f} €/rok<br>"
-                        f"σ ročního CF: {r['σ ročního CF']:,.0f} €/rok<br>"
-                        f"VaR 5%: {r['VaR 5%']:,.0f} €<br>"
-                        f"CVaR 5%: {r['CVaR 5%']:,.0f} €<br>"
-                        f"P(NPV>0): {r['P(NPV>0)']:.1%}<br>"
-                        f"<extra></extra>".replace(",", " ")
-                    ),
-                    showlegend=False,
-                ))
-            # Kvadrant guide: cross-hair na medianech
-            mn = np.median([r["EAA"] for r in cmp_res])
-            sd = np.median([r["σ ročního CF"] for r in cmp_res])
-            fig_sc.add_hline(y=mn, line=dict(dash="dot", color="#888", width=1),
-                              annotation_text=T["compare_median_eaa"],
-                              annotation_position="left")
-            fig_sc.add_vline(x=sd, line=dict(dash="dot", color="#888", width=1),
-                              annotation_text=T["compare_median_sigma"],
-                              annotation_position="top")
-            # Zvýraznit "ideální" oblast (vlevo nahoře = nízké σ + vysoké EAA)
-            x_min = min(r["σ ročního CF"] for r in cmp_res) * 0.9
-            y_max_v = max(r["EAA"] for r in cmp_res) * 1.05
-            fig_sc.add_shape(type="rect", x0=x_min, x1=sd, y0=mn, y1=y_max_v,
-                              fillcolor="rgba(76,175,80,0.06)", line=dict(width=0),
-                              layer="below")
-            fig_sc.update_layout(
-                xaxis_title=COMPARE_T["scatter_x"],
-                yaxis_title=COMPARE_T["scatter_y"],
-                height=560, margin=dict(t=30, b=50, l=10, r=10),
-                hovermode="closest",
+        fig_cv = go.Figure()
+        for r in cmp_res:
+            lbl  = ("M" if r["Plodina"] == "Miscanthus" else "S") + " · " + r["Půda"][:4]
+            crop_lbl = crop_display(r["Plodina"], lang_code)
+            size = 14 + 26 * max(0, min(1, r["P(NPV>0)"]))
+            fig_cv.add_trace(go.Scatter(
+                x=[r["CVaR 5%"]], y=[r["EAA"]],
+                mode="markers+text",
+                name=lbl,
+                marker=dict(
+                    symbol=crop_symbols[r["Plodina"]],
+                    color=soil_colors[r["Půda"]],
+                    size=size,
+                    line=dict(color="#000", width=1),
+                ),
+                text=[lbl], textposition="top center",
+                textfont=dict(size=10),
+                hovertemplate=(
+                    f"<b>{crop_lbl} × {r['Půda']}</b><br>"
+                    f"EAA: {r['EAA']:,.0f} €/rok<br>"
+                    f"CVaR 5%: {r['CVaR 5%']:,.0f} €<br>"
+                    f"VaR 5%: {r['VaR 5%']:,.0f} €<br>"
+                    f"P(NPV>0): {r['P(NPV>0)']:.1%}<br>"
+                    f"<extra></extra>".replace(",", " ")
+                ),
+                showlegend=False,
+            ))
+        # Median guides
+        mn_eaa  = np.median([r["EAA"]     for r in cmp_res])
+        md_cvar = np.median([r["CVaR 5%"] for r in cmp_res])
+        fig_cv.add_hline(y=mn_eaa, line=dict(dash="dot", color="#888", width=1),
+                          annotation_text=T["compare_median_eaa"],
+                          annotation_position="left")
+        fig_cv.add_vline(x=md_cvar, line=dict(dash="dot", color="#888", width=1),
+                          annotation_text=T["compare_median_cvar"],
+                          annotation_position="top")
+        # "Ideální" oblast — pravý horní kvadrant (vysoké EAA + mírnější CVaR)
+        x_max_v = max(r["CVaR 5%"] for r in cmp_res) * 1.05 if max(r["CVaR 5%"] for r in cmp_res) > 0 else max(r["CVaR 5%"] for r in cmp_res) * 0.95
+        y_max_e = max(r["EAA"] for r in cmp_res) * 1.05
+        fig_cv.add_shape(type="rect", x0=md_cvar, x1=x_max_v, y0=mn_eaa, y1=y_max_e,
+                          fillcolor="rgba(76,175,80,0.06)", line=dict(width=0),
+                          layer="below")
+        fig_cv.update_layout(
+            xaxis_title=COMPARE_T["scatter_cvar_x"],
+            yaxis_title=COMPARE_T["scatter_cvar_y"],
+            height=560, margin=dict(t=30, b=50, l=10, r=10),
+            hovermode="closest",
+        )
+        st.plotly_chart(fig_cv, use_container_width=True, key="compare_scatter_cvar")
+        st.markdown(legend_md)
+
+        # ---------- 3) Souhrnná tabulka ----------
+        st.divider()
+        st.markdown("### " + COMPARE_T["table_t"])
+        df_cmp = pd.DataFrame(cmp_res)
+        df_disp = df_cmp.drop(columns=["Y_min", "Y_max"], errors="ignore").copy()
+        # Přemapuj sloupec Plodina na zobrazený label (interní klíč zůstává
+        # v df_cmp pro Excel export níže)
+        if "Plodina" in df_disp.columns:
+            df_disp["Plodina"] = df_disp["Plodina"].apply(
+                lambda v: crop_display(v, lang_code))
+        for col in ["mean NPV", "σ ročního CF", "VaR 5%", "CVaR 5%", "EAA"]:
+            if col in df_disp.columns:
+                df_disp[col] = df_disp[col].apply(
+                    lambda v: f"{v:,.0f} €".replace(",", " "))
+        for col in ["P(NPV>0)", "Payback prob."]:
+            if col in df_disp.columns:
+                df_disp[col] = df_disp[col].apply(lambda v: f"{v:.1%}")
+        st.dataframe(
+            df_disp.style.apply(_highlight_crop, axis=1),
+            use_container_width=True, hide_index=True,
+        )
+
+        # Excel export srovnání
+        try:
+            from io import BytesIO
+            bio = BytesIO()
+            with pd.ExcelWriter(bio, engine="openpyxl") as wr:
+                df_cmp.to_excel(wr, sheet_name=T["compare_excel_sheet"], index=False)
+            bio.seek(0)
+            st.download_button(
+                label=COMPARE_T["dl_btn"],
+                data=bio.getvalue(),
+                file_name=f"BioFarm_srovnani_{detected_zone_label[:10].replace(' ', '_')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key="dl_compare",
             )
-            st.plotly_chart(fig_sc, use_container_width=True, key="compare_scatter")
+        except Exception:
+            pass
 
-            # Legenda manuálně (čistý markdown bez div, aby se renderoval bold)
-            legend_md = T["compare_legend"]
-            st.markdown(legend_md)
 
-            # ---------- 3) Downside risk scatter (CVaR vs EAA) -----------
-            st.divider()
-            st.markdown("### " + COMPARE_T["scatter_cvar_t"])
-            st.info(COMPARE_T["scatter_cvar_note"])
-
-            fig_cv = go.Figure()
-            for r in cmp_res:
-                lbl  = ("M" if r["Plodina"] == "Miscanthus" else "S") + " · " + r["Půda"][:4]
-                size = 14 + 26 * max(0, min(1, r["P(NPV>0)"]))
-                fig_cv.add_trace(go.Scatter(
-                    x=[r["CVaR 5%"]], y=[r["EAA"]],
-                    mode="markers+text",
-                    name=lbl,
-                    marker=dict(
-                        symbol=crop_symbols[r["Plodina"]],
-                        color=soil_colors[r["Půda"]],
-                        size=size,
-                        line=dict(color="#000", width=1),
-                    ),
-                    text=[lbl], textposition="top center",
-                    textfont=dict(size=10),
-                    hovertemplate=(
-                        f"<b>{r['Plodina']} × {r['Půda']}</b><br>"
-                        f"EAA: {r['EAA']:,.0f} €/rok<br>"
-                        f"CVaR 5%: {r['CVaR 5%']:,.0f} €<br>"
-                        f"VaR 5%: {r['VaR 5%']:,.0f} €<br>"
-                        f"P(NPV>0): {r['P(NPV>0)']:.1%}<br>"
-                        f"<extra></extra>".replace(",", " ")
-                    ),
-                    showlegend=False,
-                ))
-            # Median guides
-            mn_eaa  = np.median([r["EAA"]     for r in cmp_res])
-            md_cvar = np.median([r["CVaR 5%"] for r in cmp_res])
-            fig_cv.add_hline(y=mn_eaa, line=dict(dash="dot", color="#888", width=1),
-                              annotation_text=T["compare_median_eaa"],
-                              annotation_position="left")
-            fig_cv.add_vline(x=md_cvar, line=dict(dash="dot", color="#888", width=1),
-                              annotation_text=T["compare_median_cvar"],
-                              annotation_position="top")
-            # "Ideální" oblast — pravý horní kvadrant (vysoké EAA + mírnější CVaR)
-            x_max_v = max(r["CVaR 5%"] for r in cmp_res) * 1.05 if max(r["CVaR 5%"] for r in cmp_res) > 0 else max(r["CVaR 5%"] for r in cmp_res) * 0.95
-            y_max_e = max(r["EAA"] for r in cmp_res) * 1.05
-            fig_cv.add_shape(type="rect", x0=md_cvar, x1=x_max_v, y0=mn_eaa, y1=y_max_e,
-                              fillcolor="rgba(76,175,80,0.06)", line=dict(width=0),
-                              layer="below")
-            fig_cv.update_layout(
-                xaxis_title=COMPARE_T["scatter_cvar_x"],
-                yaxis_title=COMPARE_T["scatter_cvar_y"],
-                height=560, margin=dict(t=30, b=50, l=10, r=10),
-                hovermode="closest",
-            )
-            st.plotly_chart(fig_cv, use_container_width=True, key="compare_scatter_cvar")
-            st.markdown(legend_md)
-
-            # ---------- 3) Souhrnná tabulka ----------
-            st.divider()
-            st.markdown("### " + COMPARE_T["table_t"])
-            df_cmp = pd.DataFrame(cmp_res)
-            df_disp = df_cmp.drop(columns=["Y_min", "Y_max"], errors="ignore").copy()
-            for col in ["mean NPV", "σ ročního CF", "VaR 5%", "CVaR 5%", "EAA"]:
-                if col in df_disp.columns:
-                    df_disp[col] = df_disp[col].apply(
-                        lambda v: f"{v:,.0f} €".replace(",", " "))
-            for col in ["P(NPV>0)", "Payback prob."]:
-                if col in df_disp.columns:
-                    df_disp[col] = df_disp[col].apply(lambda v: f"{v:.1%}")
-            st.dataframe(
-                df_disp.style.apply(_highlight_crop, axis=1),
-                use_container_width=True, hide_index=True,
-            )
-
-            # Excel export srovnání
-            try:
-                from io import BytesIO
-                bio = BytesIO()
-                with pd.ExcelWriter(bio, engine="openpyxl") as wr:
-                    df_cmp.to_excel(wr, sheet_name=T["compare_excel_sheet"], index=False)
-                bio.seek(0)
-                st.download_button(
-                    label=COMPARE_T["dl_btn"],
-                    data=bio.getvalue(),
-                    file_name=f"BioFarm_srovnani_{detected_zone_label[:10].replace(' ', '_')}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    key="dl_compare",
-                )
-            except Exception:
-                pass
+with tab_compare:
+    _render_compare_fragment(
+        detected_zone_key, detected_zone_label,
+        plocha_ha, n_sim, subsidy_pct, discount_pct,
+        rho_input, drift_pct, cost_esc_pct, pachtovne,
+        editable_costs, lang_code, T, COMPARE_T)
 
 # ----- TAB 6: DIVERZIFIKACE (vždy aktivní – live z formuláře) -------------
 DIV_T = {
     "cs": {
         "header":    "Diverzifikační optimalizátor",
-        "desc":      ("Najde optimální poměr Miscanthus : SRC vrba pro zvolený "
+        "desc":      ("Najde optimální poměr Miscanthus : RRD vrba pro zvolený "
                       "ukazatel rizika. Používá **aktuální** hodnoty z formuláře výše "
                       "(klimatická zóna, kvalita půdy, plocha, ceny, dotace, korelace, drift)."),
         "metric":    "Co optimalizovat?",
@@ -3445,7 +3493,21 @@ DIV_T = {
     },
 }[st.session_state["lang"]]
 
-with tab_div:
+@st.fragment
+def _render_diversification_fragment(detected_zone_key, soil_key, plocha_ha,
+                                     n_sim, subsidy_pct, discount_pct,
+                                     rho_input, drift_pct, drift_rate,
+                                     cost_esc_pct, cost_escalation_rate,
+                                     pachtovne, editable_costs, lang_code,
+                                     T, DIV_T):
+    """Izolovaný fragment diverzifikačního optimalizátoru.
+
+    Fragment zabraňuje resetu st.tabs() po kliknutí na tlačítko výpočtu
+    (Streamlit ≥ 1.53). Výsledky se ukládají do session_state
+    (diverzifikace_results), aby přežily rerun fragmentu (např. při změně
+    výběru metrik). Lookupy do YIELD_DATA jdou přes kanonický klíč
+    detected_zone_key.
+    """
     st.markdown(f"### {DIV_T['header']}")
     st.markdown(DIV_T["desc"])
 
@@ -3558,9 +3620,16 @@ with tab_div:
                     pachtovne=pachtovne,
                     soil_quality=soil_key,
                 )
+            # Persistuj výsledky + zvolené metriky, aby přežily rerun fragmentu
+            st.session_state["diverzifikace_results"] = div_res
+            st.session_state["diverzifikace_metrics"] = list(div_selected_metrics)
 
+        # Zobraz poslední vypočtené výsledky (přežijí rerun fragmentu)
+        div_res = st.session_state.get("diverzifikace_results")
+        div_show_metrics = st.session_state.get("diverzifikace_metrics", [])
+        if div_res:
             # ---------- Pro každou vybranou metriku zobrazíme blok pod sebou ----------
-            for mk_idx, div_metric_key in enumerate(div_selected_metrics):
+            for mk_idx, div_metric_key in enumerate(div_show_metrics):
                 opt_idx, opt_val = find_optimum(div_res, div_metric_key)
                 opt_pct_m  = div_res["pct_misc"][opt_idx]
                 opt_pct_s  = 100 - opt_pct_m
@@ -3638,5 +3707,15 @@ with tab_div:
                 st.plotly_chart(fig_front, use_container_width=True,
                                  key=f"div_frontier_{div_metric_key}_{mk_idx}")
 
-                if mk_idx < len(div_selected_metrics) - 1:
+                if mk_idx < len(div_show_metrics) - 1:
                     st.divider()
+
+
+with tab_div:
+    _render_diversification_fragment(
+        detected_zone_key, soil_key, plocha_ha,
+        n_sim, subsidy_pct, discount_pct,
+        rho_input, drift_pct, drift_rate,
+        cost_esc_pct, cost_escalation_rate,
+        pachtovne, editable_costs, lang_code,
+        T, DIV_T)
