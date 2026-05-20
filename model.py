@@ -201,12 +201,10 @@ SENSITIVITY_PARAMS = {
                             "cs_short": "Disk. sazba",            "en_short": "Discount rate"},
     "weather_prob":        {"cs": "Prav. klimatického stresu",   "en": "Weather stress probability",
                             "cs_short": "Klim. stres",            "en_short": "Weather stress"},
-    "decarbon_drift":      {"cs": "Dekarbonizační drift (%/rok)", "en": "Decarbonization drift (%/yr)",
-                            "cs_short": "Drift",                  "en_short": "Drift"},
-    "cost_escalation":     {"cs": "Eskalace nákladů (%/rok)",     "en": "Cost escalation (%/yr)",
-                            "cs_short": "Eskalace",               "en_short": "Cost esc."},
-    "sigma_P":             {"cs": "Volatilita ceny σ_P (EUR/t DM)", "en": "Price volatility σ_P (EUR/t DM)",
-                            "cs_short": "σ_P (cena)",             "en_short": "σ_P (price)"},
+    "decarbon_drift":      {"cs": "Eskalace prodejní ceny g (%/rok)", "en": "Selling price escalation g (%/yr)",
+                            "cs_short": "Eskalace ceny",          "en_short": "Price esc."},
+    "cost_escalation":     {"cs": "Eskalace nákladů eₒ (%/rok)",  "en": "Cost escalation eₒ (%/yr)",
+                            "cs_short": "Eskalace nákladů",       "en_short": "Cost esc."},
 }
 SA_MAX_SELECTED = 5
 
@@ -412,6 +410,8 @@ def make_sensitivity_line_chart(all_sa, metric_key, title, yaxis_label,
     rel_keys = [k for k, v in all_sa.items() if not v.get("is_absolute_axis")]
     abs_keys = [k for k, v in all_sa.items() if v.get("is_absolute_axis")]
 
+    T_local = LANG[lang_code]
+
     fig = go.Figure()
     color_idx = 0
     for pk in rel_keys:
@@ -431,7 +431,7 @@ def make_sensitivity_line_chart(all_sa, metric_key, title, yaxis_label,
         fig.add_trace(go.Scatter(
             x=sa_data["pct"], y=sa_data[metric_key],
             mode="lines+markers",
-            name=param_labels_short[pk] + (" (abs %)" if lang_code == "cs" else " (abs %)"),
+            name=param_labels_short[pk] + " (abs %)",
             line=dict(color=SA_LINE_COLORS[color_idx % len(SA_LINE_COLORS)],
                       width=2.5, dash="dot"),
             marker=dict(size=5, symbol="diamond"),
@@ -441,11 +441,17 @@ def make_sensitivity_line_chart(all_sa, metric_key, title, yaxis_label,
 
     fig.add_vline(x=0, line_dash="dash", line_color="gray", line_width=1)
 
+    # Titulek umístíme nad celý graf; pokud je aktivní sekundární osa (nahoře),
+    # potřebuje víc místa, aby se popisek osy nepřekrýval s názvem grafu.
+    has_abs = bool(abs_keys)
+    top_margin = 120 if has_abs else 60
+    title_y = 0.99 if has_abs else 0.95
     layout_kwargs = dict(
-        title=dict(text=title, font=dict(size=15), x=0.5, xanchor="center"),
+        title=dict(text=title, font=dict(size=15), x=0.5, xanchor="center",
+                   y=title_y, yanchor="top"),
         yaxis_title=yaxis_label,
         xaxis=dict(
-            title="Odchylka parametru (%)" if lang_code == "cs" else "Parameter deviation (%)",
+            title=T_local["sa_x_axis_label"],
             dtick=2, range=[-11, 11],
         ),
         legend=dict(
@@ -453,11 +459,11 @@ def make_sensitivity_line_chart(all_sa, metric_key, title, yaxis_label,
             font=dict(size=11),
         ),
         height=480,
-        margin=dict(t=70, b=110),
+        margin=dict(t=top_margin, b=110),
     )
-    if abs_keys:
+    if has_abs:
         layout_kwargs["xaxis2"] = dict(
-            title="Drift (%/rok – absolutně)" if lang_code == "cs" else "Drift (%/yr – absolute)",
+            title=dict(text=T_local["sa_x_axis2_label"], standoff=4),
             overlaying="x", side="top",
             dtick=1, range=[-5.5, 5.5],
         )
@@ -520,11 +526,13 @@ def make_tornado_chart(all_sa, metric_key, param_labels_full, lang_code,
     low_deltas  = [r["low_delta"]  for r in rows]
     high_deltas = [r["high_delta"] for r in rows]
 
+    T_local = LANG[lang_code]
+
     fig = go.Figure()
     # Levá strana (modrá: efekt -10 %)
     fig.add_trace(go.Bar(
         y=labels, x=low_deltas, orientation="h",
-        name=("-10 % parametru" if lang_code == "cs" else "-10 % parameter"),
+        name=T_local["sa_neg_param_name"],
         marker_color="#1976D2",
         text=[f"{v:+,.0f} €".replace(",", " ") for v in low_deltas],
         textposition="auto",
@@ -533,7 +541,7 @@ def make_tornado_chart(all_sa, metric_key, param_labels_full, lang_code,
     # Pravá strana (červená: efekt +10 %)
     fig.add_trace(go.Bar(
         y=labels, x=high_deltas, orientation="h",
-        name=("+10 % parametru" if lang_code == "cs" else "+10 % parameter"),
+        name=T_local["sa_pos_param_name"],
         marker_color="#D32F2F",
         text=[f"{v:+,.0f} €".replace(",", " ") for v in high_deltas],
         textposition="auto",
@@ -541,19 +549,16 @@ def make_tornado_chart(all_sa, metric_key, param_labels_full, lang_code,
     ))
     fig.add_vline(x=0, line=dict(color="#000", width=1, dash="solid"))
 
-    title_cs = (f"Tornádový graf: vliv parametrů na NPV "
-                f"(baseline = {baseline_value:,.0f} €)".replace(",", " ")
-                if baseline_value is not None else
-                "Tornádový graf: vliv parametrů na NPV")
-    title_en = (f"Tornado: parameter impact on NPV "
-                f"(baseline = {baseline_value:,.0f} €)".replace(",", " ")
-                if baseline_value is not None else
-                "Tornado: parameter impact on NPV")
+    if baseline_value is not None:
+        baseline_fmt = f"{baseline_value:,.0f}".replace(",", " ")
+        chart_title = T_local["tornado_title_baseline"].format(baseline=baseline_fmt)
+    else:
+        chart_title = T_local["tornado_title_nobaseline"]
 
     fig.update_layout(
-        title=title_cs if lang_code == "cs" else title_en,
+        title=chart_title,
         barmode="overlay",
-        xaxis=dict(title=("Změna NPV [EUR]" if lang_code == "cs" else "ΔNPV [EUR]"),
+        xaxis=dict(title=T_local["tornado_x_axis"],
                     zeroline=True, zerolinewidth=2, zerolinecolor="#000"),
         yaxis=dict(title=""),
         height=max(360, 40 * len(rows) + 120),
@@ -1716,7 +1721,7 @@ if "lang" not in st.session_state:
 # ===========================================================================
 # PAGE CONFIG
 # ===========================================================================
-st.set_page_config(layout="wide", page_title="BioFarm Simulator")
+st.set_page_config(layout="wide", page_title="Rizikový model biomasy")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # ===========================================================================
@@ -1822,7 +1827,7 @@ with st.container(border=True):
             bpej_value, bpej_caption = BS["bpej_metric_err"], BS["bpej_metric_cap_err"]
     else:
         bpej_value   = "—"
-        bpej_caption = "Klikněte do mapy" if lang_code == "cs" else "Click on the map"
+        bpej_caption = T["bpej_click_map"]
 
     # 4 metriky pod mapou – sjednocený styl
     st.markdown("<div style='margin-top:14px'></div>", unsafe_allow_html=True)
@@ -1846,10 +1851,7 @@ with st.container(border=True):
 # KROK 2 – PLODINY & PARAMETRY (vše v 1 kartě)
 # ===========================================================================
 with st.container(border=True):
-    sub_2 = ("Vyberte plodiny, plochu a kvalitu půdy."
-             if lang_code == "cs" else
-             "Pick crops, area and soil quality.")
-    step_header(2, T["sec2_header"], sub_2)
+    step_header(2, T["sec2_header"], T["sec2_subtitle"])
 
     # Řada 1: půda + plocha + plodiny
     cp1, cp2, cp3 = st.columns([1, 1, 1.2])
@@ -1867,9 +1869,9 @@ with st.container(border=True):
         st.write(T["crops_label"])
         ck1, ck2 = st.columns(2)
         with ck1:
-            chk_gig = st.checkbox("🌾 Miscanthus", value=True)
+            chk_gig = st.checkbox(T["crop_misc_chk"], value=True)
         with ck2:
-            chk_src = st.checkbox("🌳 SRC vrba")
+            chk_src = st.checkbox(T["crop_src_chk"])
         plodiny = []
         if chk_gig: plodiny.append("M_giganteus")
         if chk_src: plodiny.append("SRC Vrba")
@@ -1920,19 +1922,10 @@ with st.container(border=True):
 
     # Katastrofický scénář – 10 po sobě jdoucích nepříznivých let v každé sim.
     catastrophic_input = st.checkbox(
-        ("☢ Katastrofický scénář (10 po sobě jdoucích špatných let)"
-         if lang_code == "cs" else
-         "☢ Catastrophic scenario (10 consecutive stress years)"),
+        T["catastrophic_label"],
         value=False,
         key="catastrophic_scenario",
-        help=("Modeluje dlouhotrvající nepříznivé období (např. opakované sucho). "
-              "Pro každý MC scénář se náhodně vybere 10letý interval, ve kterém "
-              "je výnos redukován na 40--60 % očekávané úrovně. Stresnější "
-              "alternativa k běžné 5% pravděpodobnosti stresového roku."
-              if lang_code == "cs" else
-              "Models a prolonged adverse period (e.g., recurring drought). "
-              "For each MC scenario, a random 10-year window is selected during "
-              "which yield is reduced to 40--60% of expected level."),
+        help=T["catastrophic_help"],
     )
 
     # Vlastnictví pozemku → pachtovné
@@ -1954,12 +1947,11 @@ with st.container(border=True):
                            "v ČR (ČSÚ 2024)."),
             )
         else:
-            st.markdown("<div style='padding-top:32px;color:#666;font-size:13px'>"
-                         "Na vlastním pozemku se nájem neplatí.</div>"
-                         if lang_code == "cs" else
-                         "<div style='padding-top:32px;color:#666;font-size:13px'>"
-                         "No rent on owned land.</div>",
-                         unsafe_allow_html=True)
+            st.markdown(
+                "<div style='padding-top:32px;color:#666;font-size:13px'>"
+                + T["land_owned_msg"] + "</div>",
+                unsafe_allow_html=True,
+            )
             pachtovne = 0
 
 # ===========================================================================
@@ -1985,38 +1977,33 @@ def _render_crop_costs(crop_label, crop_key, color_dark, color_main):
     st.markdown(
         f"<div style='background:{color_main};color:white;padding:6px 12px;"
         f"border-radius:6px;font-weight:600;font-size:12px;margin-bottom:6px'>"
-        f"🚜 PŘÍPRAVA POZEMKU A VÝSADBA</div>", unsafe_allow_html=True)
+        f"{T['cost_sec1_header']}</div>", unsafe_allow_html=True)
     p["prep_pozemku"] = st.number_input(
-        "Příprava pozemku (€/ha) — ROK 0",
+        T["cost_prep_label"],
         value=float(defaults["prep_pozemku"]), min_value=0.0, step=10.0, format="%.0f",
-        help="Zaorání, odplevelení, jarní vláčení (před výsadbou).",
+        help=T["cost_prep_help"],
         key=f"{crop_key}_prep")
 
     # Hustota a cena sadby ⇒ vypočtený sadební materiál
     dens_min, dens_max, dens_step = (6000, 10000, 500) if is_misc else (6000, 8000, 500)
     price_min, price_max, price_step = (0.10, 0.70, 0.02) if is_misc else (0.08, 0.20, 0.01)
     price_fmt = "%.2f"
-    plant_help = (
-        "Hustota výsadby 8 000 oddenků/ha podle Weger et al. 2021."
-        if is_misc else
-        "Hustota výsadby 7 000 řízků/ha podle Weger et al. 2021.")
-    price_help = (
-        "Cena oddenku 0,30 €/ks – kompromis mezi lokálním CZ dodavatelem "
-        "(0,50 €/ks; Trogl 2026) a EU producenty (0,16–0,21 €/ks; "
-        "miscanthus.eu 2026), zahrnuje dopravu a manipulační rezervu."
-        if is_misc else
-        "Cena řízku 0,12 €/ks ≈ 3 Kč/řízek (kurz 25 CZK/EUR).")
+    plant_help = T["cost_density_misc_help"] if is_misc else T["cost_density_src_help"]
+    price_help = T["cost_seed_price_misc_help"] if is_misc else T["cost_seed_price_src_help"]
+    dens_label = T["cost_density_misc_label"] if is_misc else T["cost_density_src_label"]
+    seed_price_label = (T["cost_seed_price_misc_label"] if is_misc
+                        else T["cost_seed_price_src_label"])
 
     h1, h2 = st.columns(2)
     with h1:
         p["hustota_vysadby"] = st.slider(
-            f"Hustota výsadby ({'oddenků' if is_misc else 'řízků'}/ha)",
+            dens_label,
             min_value=dens_min, max_value=dens_max,
             value=int(defaults["hustota_vysadby"]), step=dens_step,
             help=plant_help, key=f"{crop_key}_dens")
     with h2:
         p["cena_sadby_ks"] = st.slider(
-            f"Cena {'oddenku' if is_misc else 'řízku'} (€/ks)",
+            seed_price_label,
             min_value=price_min, max_value=price_max,
             value=float(defaults["cena_sadby_ks"]), step=price_step,
             format=price_fmt, help=price_help, key=f"{crop_key}_pks")
@@ -2024,32 +2011,30 @@ def _render_crop_costs(crop_label, crop_key, color_dark, color_main):
     sadebni_material = p["hustota_vysadby"] * p["cena_sadby_ks"]
     st.markdown(
         f"<div style='font-size:13px;color:#555;padding:4px 0 8px 0'>"
-        f"💡 Sadební materiál celkem: <b>{sadebni_material:,.0f} €/ha</b> "
+        f"{T['cost_seed_total_label']} <b>{sadebni_material:,.0f} €/ha</b> "
         f"({p['hustota_vysadby']:,} × {p['cena_sadby_ks']:.2f} €/ks)"
         f"</div>".replace(",", " "),
         unsafe_allow_html=True)
 
     p["cena_vysadby_ks"] = st.number_input(
-        "Cena výsadby (€/ks) — ROK 1",
+        T["cost_planting_price_label"],
         value=float(defaults["cena_vysadby_ks"]),
         min_value=0.0, max_value=1.0, step=0.01, format="%.2f",
-        help=("Jednotková sazba za výsadbu jednoho oddenku/řízku. "
-              "Default 0,06 €/ks ≈ 1,5 Kč/ks (sazba VÚKOZ pro řízky SRC; "
-              "pro Miscanthus expertní odhad analogií)."),
+        help=T["cost_planting_price_help"],
         key=f"{crop_key}_cvys")
 
     mech_vysadba_calc = p["hustota_vysadby"] * p["cena_vysadby_ks"]
     p["mech_vysadba"]  = mech_vysadba_calc   # pro zpětnou kompatibilitu
     st.markdown(
         f"<div style='font-size:13px;color:#555;padding:4px 0 8px 0'>"
-        f"💡 Mechanizovaná výsadba celkem: <b>{mech_vysadba_calc:,.0f} €/ha</b> "
+        f"{T['cost_mech_planting_total_label']} <b>{mech_vysadba_calc:,.0f} €/ha</b> "
         f"({p['hustota_vysadby']:,} × {p['cena_vysadby_ks']:.2f} €/ks)"
         f"</div>".replace(",", " "),
         unsafe_allow_html=True)
     p["udrzba_1_2_rok"] = st.number_input(
-        "Údržba 1.–2. rok celkem (€/ha)",
+        T["cost_udrzba_y12_label"],
         value=float(defaults["udrzba_1_2_rok"]), min_value=0.0, step=10.0, format="%.0f",
-        help="Mechanické odplevelení + kontrola; rozděleno 50/50 mezi rok 1 a 2.",
+        help=T["cost_udrzba_y12_help"],
         key=f"{crop_key}_u12")
 
     # ---------- Sekce 2: Roční provozní (od ROK 3+) ----------
@@ -2057,19 +2042,15 @@ def _render_crop_costs(crop_label, crop_key, color_dark, color_main):
         f"<div style='background:{color_main};color:white;padding:6px 12px;"
         f"border-radius:6px;font-weight:600;font-size:12px;"
         f"margin:14px 0 6px 0'>"
-        f"🔧 ROČNÍ PROVOZNÍ NÁKLADY</div>", unsafe_allow_html=True)
-    udr_help = (
-        "Roční údržba Miscanthus reflektuje pravidelné hnojení 18× za 20 let "
-        "(Wagner et al. 2022)."
-        if is_misc else
-        "Roční údržba SRC reflektuje minimální zásahy u dobře založené plantáže "
-        "(VÚKOZ Průhonice 2026).")
+        f"{T['cost_sec2_header']}</div>", unsafe_allow_html=True)
+    udr_help = (T["cost_udrzba_rocni_misc_help"] if is_misc
+                else T["cost_udrzba_rocni_src_help"])
     p["udrzba_rocni"] = st.number_input(
-        "Údržba (€/ha/rok) — bez nájmu",
+        T["cost_udrzba_rocni_label"],
         value=float(defaults["udrzba_rocni"]), min_value=0.0, step=10.0, format="%.0f",
         help=udr_help, key=f"{crop_key}_uroc")
     p["dan_pozemku"] = st.number_input(
-        "Daň z pozemku (€/ha/rok)",
+        T["cost_dan_label"],
         value=float(defaults["dan_pozemku"]), min_value=0.0, step=1.0, format="%.0f",
         key=f"{crop_key}_dan")
 
@@ -2078,21 +2059,19 @@ def _render_crop_costs(crop_label, crop_key, color_dark, color_main):
         f"<div style='background:{color_main};color:white;padding:6px 12px;"
         f"border-radius:6px;font-weight:600;font-size:12px;"
         f"margin:14px 0 6px 0'>"
-        f"🌾 SKLIZEŇ A LIKVIDACE</div>", unsafe_allow_html=True)
+        f"{T['cost_sec3_header']}</div>", unsafe_allow_html=True)
     s1, s2 = st.columns(2)
     with s1:
         p["sklizen_per_tuna"] = st.number_input(
-            "Náklady sklizně (€/t)",
+            T["cost_sklizen_label"],
             value=float(defaults["sklizen_per_tuna"]), min_value=0.0, step=1.0, format="%.0f",
             key=f"{crop_key}_skliz")
     with s2:
         p["likvidace"] = st.number_input(
-            "Likvidace plantáže (€/ha)",
+            T["cost_likvidace_label"],
             value=float(defaults["likvidace"]), min_value=0.0, step=10.0, format="%.0f",
-            help=("Snadné zničení oddenků orbou (1 sezóna)."
-                   if is_misc else
-                   "Biologicko-mechanické rušení 2 roky + finální orba "
-                   "(VÚKOZ 2026): 189 + 189 + 240 €/ha."),
+            help=(T["cost_likvidace_misc_help"] if is_misc
+                  else T["cost_likvidace_src_help"]),
             key=f"{crop_key}_likv")
 
     # ---------- Sekce 4: Tržní + strukturální ----------
@@ -2100,35 +2079,29 @@ def _render_crop_costs(crop_label, crop_key, color_dark, color_main):
         f"<div style='background:{color_main};color:white;padding:6px 12px;"
         f"border-radius:6px;font-weight:600;font-size:12px;"
         f"margin:14px 0 6px 0'>"
-        f"💶 TRŽNÍ A STRUKTURÁLNÍ PARAMETRY</div>", unsafe_allow_html=True)
+        f"{T['cost_sec4_header']}</div>", unsafe_allow_html=True)
     t1, t2, t3 = st.columns(3)
     with t1:
         p["prodejni_cena_start"] = st.number_input(
-            "Výchozí prodejní cena (€/t sušiny)",
+            T["cost_cena_label"],
             value=float(defaults["prodejni_cena_start"]),
             min_value=0.0, step=1.0, format="%.0f",
-            help=("Bottom-up: P_ref × LHV_DM − T_DM. Defaulty Miscanthus 125 / "
-                  "SRC 128 EUR/t DM odpovídají P_ref = 7,60 EUR/GJ "
-                  "(Vyhláška 315/2025 Sb., 190 Kč/GJ pro biomasu kat. 1) "
-                  "při 30 km svozu (ČESMAD 2024). Detail v § 3.5 DP."),
+            help=T["cost_cena_help"],
             key=f"{crop_key}_pcena")
     with t2:
         p["riziko_fail"] = st.number_input(
-            "Riziko selhání v 1. roce",
+            T["cost_riziko_label"],
             value=float(defaults["riziko_fail"]),
             min_value=0.0, max_value=1.0, step=0.01, format="%.2f",
-            help="Pravděpodobnost úplného selhání plantáže v 1. roce po výsadbě.",
+            help=T["cost_riziko_help"],
             key=f"{crop_key}_rfail")
     with t3:
         p["zivotnost"] = st.number_input(
-            "Délka projektu (let, vč. ROK 0)",
+            T["cost_zivotnost_label"],
             value=int(defaults["zivotnost"]),
             min_value=5, max_value=40, step=1, format="%d",
-            help=("Celková délka projektu vč. roku 0 (příprava). "
-                   "Default 26 = 25 let aktivního provozu + 1 rok přípravy."
-                   if is_misc else
-                   "Celková délka projektu vč. roku 0 (příprava). "
-                   "Default 30 = 29 let projektu (vč. 3 let likvidace) + ROK 0."),
+            help=(T["cost_zivotnost_misc_help"] if is_misc
+                  else T["cost_zivotnost_src_help"]),
             key=f"{crop_key}_ziv")
 
     # capex_std zůstává z defaults (neuživatelský parametr)
@@ -2145,10 +2118,7 @@ with st.container(border=True):
         cc1 = cc2 = st.container()
     else:
         cc1 = cc2 = None
-        warn_no_crop = ("Vyberte alespoň jednu plodinu v kroku 2."
-                        if lang_code == "cs" else
-                        "Please select at least one crop in step 2.")
-        st.info(warn_no_crop)
+        st.info(T["cost_warn_no_crop"])
 
     if show_misc and cc1 is not None:
         with cc1:
@@ -2169,33 +2139,23 @@ sa_all_keys = list(SENSITIVITY_PARAMS.keys())
 sa_options = {k: v[lang_sa] for k, v in SENSITIVITY_PARAMS.items()}
 
 with st.container(border=True):
-    sub_4 = ("Vyberte max. 5 parametrů – uvidíte jejich vliv při ±10 % odchylce."
-             if lang_sa == "cs" else
-             "Select up to 5 parameters – sensitivity charts at ±10 %.")
-    step_header(4, SA["sa_header"], sub_4)
+    step_header(4, SA["sa_header"], T["sa_subtitle"])
 
-    sa_row1_keys = sa_all_keys[:5]
-    sa_row2_keys = sa_all_keys[5:]
     sa_selected = []
 
-    sa_cols1 = st.columns(5)
-    for col, pk in zip(sa_cols1, sa_row1_keys):
-        with col:
-            if st.checkbox(sa_options[pk], value=False, key=f"sa_chk_{pk}"):
-                sa_selected.append(pk)
-
-    sa_cols2 = st.columns(5)
-    for col, pk in zip(sa_cols2, sa_row2_keys):
-        with col:
-            if st.checkbox(sa_options[pk], value=False, key=f"sa_chk_{pk}"):
-                sa_selected.append(pk)
+    # Rozdělit VŠECHNY parametry do řádků po 5 (jinak by se poslední
+    # parametry — eskalace ceny g, eskalace nákladů e_o, sigma_P — nezobrazily)
+    for row_start in range(0, len(sa_all_keys), 5):
+        row_keys = sa_all_keys[row_start:row_start + 5]
+        sa_cols = st.columns(5)
+        for col, pk in zip(sa_cols, row_keys):
+            with col:
+                if st.checkbox(sa_options[pk], value=False, key=f"sa_chk_{pk}"):
+                    sa_selected.append(pk)
 
     if len(sa_selected) > SA_MAX_SELECTED:
-        warn_msg = (f"⚠️ Vybráno {len(sa_selected)} parametrů – maximum je {SA_MAX_SELECTED}. "
-                    "Budou použity pouze první vybrané."
-                    if lang_sa == "cs" else
-                    f"⚠️ {len(sa_selected)} parameters selected – max is {SA_MAX_SELECTED}. "
-                    "Only the first selected will be used.")
+        warn_msg = T["sa_warn_too_many"].format(
+            n=len(sa_selected), max=SA_MAX_SELECTED)
         st.warning(warn_msg)
         sa_selected = sa_selected[:SA_MAX_SELECTED]
 
@@ -2209,8 +2169,7 @@ with btn_col2:
 
 if run_clicked:
     if not plodiny:
-        st.error("Vyberte alespoň jednu plodinu v kroku 2." if lang_code == "cs"
-                 else "Please select at least one crop in step 2.")
+        st.error(T["cost_warn_no_crop"])
     else:
         results, summary_data = {}, []
         bar = st.progress(0)
@@ -2334,12 +2293,10 @@ if run_clicked:
 # ===========================================================================
 # RESULTS – vždy renderuj taby (s placeholderem dokud nedoběhne první sim)
 # ===========================================================================
-TAB_LABELS = {
-    "cs": ["📊 Přehled", "🌱 Výnosy & ceny", "⚠️ Riziko", "💰 IRR",
-           "🎯 Citlivost", "📈 Srovnání kvalit", "⚖️ Diverzifikace"],
-    "en": ["📊 Overview", "🌱 Yields & prices", "⚠️ Risk", "💰 IRR",
-           "🎯 Sensitivity", "📈 Soil comparison", "⚖️ Diversification"],
-}[lang_code]
+TAB_LABELS = [
+    T["tab_overview"], T["tab_yields"], T["tab_risk"], T["tab_irr"],
+    T["tab_sens"], T["tab_compare"], T["tab_div"],
+]
 
 st.markdown("<div style='margin-top:24px'></div>", unsafe_allow_html=True)
 (tab_overview, tab_yields, tab_risk, tab_irr, tab_sens, tab_compare,
@@ -2352,8 +2309,10 @@ sim_sa_sel  = st.session_state.get("sim_sa_selected", [])
 sim_area    = sim_meta.get("area", plocha_ha)
 
 
-def _placeholder(msg_cs, msg_en):
-    msg = msg_cs if lang_code == "cs" else msg_en
+def _placeholder(msg_cs=None, msg_en=None):
+    # Backward-compatible signature; new code passes no args and uses
+    # the translated placeholder string.
+    msg = T["placeholder_run_sim"]
     st.info("👆 " + msg)
 
 
@@ -2378,42 +2337,45 @@ def generate_excel_export(sim_results, sim_meta, sim_summary, sim_area):
         # --- Sheet 1: Souhrn ---
         if sim_summary:
             df_souhrn = pd.DataFrame(sim_summary)
-            df_souhrn.to_excel(wr, sheet_name="1_Souhrn", index=False)
+            df_souhrn.to_excel(wr, sheet_name=T["excel_sheet_souhrn"], index=False)
         else:
-            pd.DataFrame({"info": ["Žádná simulace neproběhla"]}).to_excel(
-                wr, sheet_name="1_Souhrn", index=False)
+            pd.DataFrame({"info": [T["excel_no_sim"]]}).to_excel(
+                wr, sheet_name=T["excel_sheet_souhrn"], index=False)
 
         # --- Sheet 2: Konfigurace ---
         cfg_rows = []
-        cfg_rows.append(("Plocha (ha)", sim_meta.get("area", "")))
-        cfg_rows.append(("Počet simulací", sim_meta.get("n_sim", "")))
-        cfg_rows.append(("Dotace (%)", sim_meta.get("subsidy", "")))
-        cfg_rows.append(("Diskontní sazba (%)", sim_meta.get("discount", "")))
-        cfg_rows.append(("Korelace ρ", sim_meta.get("rho", "")))
-        cfg_rows.append(("Dekarbonizační drift (%/rok)", sim_meta.get("drift_pct", "")))
-        cfg_rows.append(("Eskalace nákladů (%/rok)", sim_meta.get("cost_esc_pct", "")))
-        cfg_rows.append(("Pachtovné (EUR/ha/rok)", sim_meta.get("pachtovne", "")))
+        cfg_rows.append((T["excel_cfg_area"], sim_meta.get("area", "")))
+        cfg_rows.append((T["excel_cfg_nsim"], sim_meta.get("n_sim", "")))
+        cfg_rows.append((T["excel_cfg_subsidy"], sim_meta.get("subsidy", "")))
+        cfg_rows.append((T["excel_cfg_discount"], sim_meta.get("discount", "")))
+        cfg_rows.append((T["excel_cfg_rho"], sim_meta.get("rho", "")))
+        cfg_rows.append((T["excel_cfg_drift"], sim_meta.get("drift_pct", "")))
+        cfg_rows.append((T["excel_cfg_costesc"], sim_meta.get("cost_esc_pct", "")))
+        cfg_rows.append((T["excel_cfg_rent"], sim_meta.get("pachtovne", "")))
         cfg_rows.append(("", ""))
         for plodina, data in sim_results.items():
             cfg_rows.append((f"=== {plodina} ===", ""))
-            cfg_rows.append(("  Kvalita půdy", data.get("soil_quality", "")))
-            cfg_rows.append(("  Životnost (let)", data.get("years", "")))
-            cfg_rows.append(("  Výnosový rozsah Y_min–Y_max (t DM/ha)",
+            cfg_rows.append((T["excel_cfg_soil"], data.get("soil_quality", "")))
+            cfg_rows.append((T["excel_cfg_life"], data.get("years", "")))
+            cfg_rows.append((T["excel_cfg_yields"],
                              f"{data['y_bounds'][0]}–{data['y_bounds'][1]}"))
             for k, v in data.get("params", {}).items():
                 cfg_rows.append((f"  {k}", v))
             cfg_rows.append(("", ""))
-        df_cfg = pd.DataFrame(cfg_rows, columns=["Parametr", "Hodnota"])
-        df_cfg.to_excel(wr, sheet_name="2_Konfigurace", index=False)
+        df_cfg = pd.DataFrame(
+            cfg_rows,
+            columns=[T["excel_cfg_paramcol"], T["excel_cfg_valuecol"]],
+        )
+        df_cfg.to_excel(wr, sheet_name=T["excel_sheet_konfig"], index=False)
 
         # Helper: percentily transponované — řádky = (Plodina × Statistika),
         # sloupce = roky (Rok 0, Rok 1, ..., Rok N-1)
         def percentile_wide_df(arr, plodina_label, prefix=""):
             n_yrs = arr.shape[0]
-            year_cols = [f"Rok {i}" for i in range(n_yrs)]
+            year_cols = [f"{T['excel_year_prefix']} {i}" for i in range(n_yrs)]
             stats_data = {
-                "Plodina":   [plodina_label] * 6,
-                "Statistika": ["Mean", "P5", "P25", "Median", "P75", "P95"],
+                T["excel_col_plodina"]: [plodina_label] * 6,
+                T["excel_col_statistika"]: ["Mean", "P5", "P25", "Median", "P75", "P95"],
             }
             data_arr = np.vstack([
                 arr.mean(axis=1),
@@ -2433,7 +2395,7 @@ def generate_excel_export(sim_results, sim_meta, sim_summary, sim_area):
             rows.append(percentile_wide_df(data["yields"], plodina))
         if rows:
             pd.concat(rows, ignore_index=True).to_excel(
-                wr, sheet_name="3_Roční výnosy", index=False)
+                wr, sheet_name=T["excel_sheet_vynosy"], index=False)
 
         # --- Sheet 4: Roční ceny (years jako sloupce) ---
         rows = []
@@ -2441,7 +2403,7 @@ def generate_excel_export(sim_results, sim_meta, sim_summary, sim_area):
             rows.append(percentile_wide_df(data["prices"], plodina))
         if rows:
             pd.concat(rows, ignore_index=True).to_excel(
-                wr, sheet_name="4_Roční ceny", index=False)
+                wr, sheet_name=T["excel_sheet_ceny"], index=False)
 
         # --- Sheet 5: Roční náklady (years jako sloupce) ---
         # Řádky: Plodina × Kategorie (Setup/CAPEX, Provoz, Likvidace, Celkem)
@@ -2451,11 +2413,11 @@ def generate_excel_export(sim_results, sim_meta, sim_summary, sim_area):
                 continue
             c = data["costs"]
             n_yrs = c["setup"].shape[0]
-            year_cols = [f"Rok {i}" for i in range(n_yrs)]
+            year_cols = [f"{T['excel_year_prefix']} {i}" for i in range(n_yrs)]
             cat_data = {
-                "Plodina":   [plodina] * 4,
-                "Kategorie": ["Setup/CAPEX (EUR/ha)", "Provoz (EUR/ha)",
-                               "Likvidace (EUR/ha)", "Celkem (EUR/ha)"],
+                T["excel_col_plodina"]:   [plodina] * 4,
+                T["excel_col_category"]: [T["excel_cat_setup"], T["excel_cat_oper"],
+                                          T["excel_cat_liquid"], T["excel_cat_total"]],
             }
             data_arr = np.vstack([
                 c["setup"].mean(axis=1),
@@ -2468,7 +2430,7 @@ def generate_excel_export(sim_results, sim_meta, sim_summary, sim_area):
             rows.append(pd.DataFrame(cat_data))
         if rows:
             pd.concat(rows, ignore_index=True).to_excel(
-                wr, sheet_name="5_Roční náklady", index=False)
+                wr, sheet_name=T["excel_sheet_naklady"], index=False)
 
         # --- Sheet 6: Cash flow (× area, years jako sloupce) ---
         rows = []
@@ -2477,7 +2439,7 @@ def generate_excel_export(sim_results, sim_meta, sim_summary, sim_area):
             rows.append(percentile_wide_df(cf_total, plodina))
         if rows:
             pd.concat(rows, ignore_index=True).to_excel(
-                wr, sheet_name="6_Cash flow", index=False)
+                wr, sheet_name=T["excel_sheet_cf"], index=False)
 
         # --- Sheet 7: NPV distribuce (histogram) ---
         rows = []
@@ -2488,17 +2450,17 @@ def generate_excel_export(sim_results, sim_meta, sim_summary, sim_area):
             counts, edges = np.histogram(tp, bins=50)
             centers = 0.5 * (edges[:-1] + edges[1:])
             df = pd.DataFrame({
-                "Plodina": plodina,
-                "Bin střed (EUR)": centers,
-                "Bin start (EUR)": edges[:-1],
-                "Bin end (EUR)":   edges[1:],
-                "Frekvence":       counts,
-                "Hustota":         counts / counts.sum(),
+                T["excel_col_plodina"]:   plodina,
+                T["excel_npv_bin_mid"]:   centers,
+                T["excel_npv_bin_start"]: edges[:-1],
+                T["excel_npv_bin_end"]:   edges[1:],
+                T["excel_npv_freq"]:      counts,
+                T["excel_npv_density"]:   counts / counts.sum(),
             })
             rows.append(df)
         if rows:
             pd.concat(rows, ignore_index=True).to_excel(
-                wr, sheet_name="7_NPV distribuce", index=False)
+                wr, sheet_name=T["excel_sheet_npv"], index=False)
 
     bio.seek(0)
     return bio.getvalue()
@@ -2507,8 +2469,7 @@ def generate_excel_export(sim_results, sim_meta, sim_summary, sim_area):
 # ----- TAB 1: PŘEHLED ------------------------------------------------------
 with tab_overview:
     if not sim_results:
-        _placeholder("Spusťte simulaci tlačítkem výše.",
-                     "Run the simulation with the button above.")
+        _placeholder()
     else:
         # ---------- Excel export tlačítko (úplně nahoře) ----------
         try:
@@ -2519,26 +2480,17 @@ with tab_overview:
             crops_in_run = "_".join(p[:4] for p in sim_results.keys())
             xls_filename = f"BioFarm_simulace_{crops_in_run}_{timestamp}.xlsx"
 
-            dl_label = ("📥 Stáhnout všechna data (Excel, 7 listů)"
-                        if lang_code == "cs" else
-                        "📥 Download all data (Excel, 7 sheets)")
             st.download_button(
-                label=dl_label,
+                label=T["dl_excel_label"],
                 data=excel_bytes,
                 file_name=xls_filename,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 key="dl_excel_export",
-                help=("Souhrn, konfigurace, roční výnosy/ceny/náklady, "
-                      "cash flow a histogram NPV — v 7 listech."
-                      if lang_code == "cs" else
-                      "Summary, config, annual yields/prices/costs, "
-                      "cash flow and NPV histogram — across 7 sheets."),
+                help=T["dl_excel_help"],
             )
             st.markdown("<div style='margin-top:8px'></div>", unsafe_allow_html=True)
         except Exception as e:
-            st.warning(f"Excel export není dostupný: {e}"
-                       if lang_code == "cs" else
-                       f"Excel export unavailable: {e}")
+            st.warning(T["excel_export_error"].format(err=e))
 
         # Hero KPI karta
         hero_inner = ""
@@ -2546,31 +2498,30 @@ with tab_overview:
             m = data["metrics"]
             crop_color = COLOR_MISC if data["type"] == "misc" else COLOR_SRC
             crop_icon  = "🌾" if data["type"] == "misc" else "🌳"
-            payback_str = (f"{m['payback']:.1f} let" if not np.isnan(m['payback'])
-                           else "N/A") if lang_code == "cs" else \
-                          (f"{m['payback']:.1f} yrs" if not np.isnan(m['payback']) else "N/A")
+            payback_str = (f"{m['payback']:.1f} {T['hero_payback_unit']}"
+                           if not np.isnan(m['payback']) else "N/A")
             pb_prob_str = (f"{m['payback_prob']:.1%}" if m['payback_prob'] >= 0.01
                            else f"{m['payback_prob']:.4%}")
             hero_inner += f"""
 <div style='border-left:4px solid {crop_color};padding-left:14px;margin-bottom:14px'>
   <div class='hero-title' style='margin-bottom:10px'>{crop_icon} {plodina}</div>
   <div class='hero-grid'>
-    <div class='hero-item'><div class='hero-label'>Průměrný NPV</div>
+    <div class='hero-item'><div class='hero-label'>{T['hero_label_npv']}</div>
       <div class='hero-value'>{fmt_eur_cs(m['mean_profit'])}</div></div>
-    <div class='hero-item'><div class='hero-label'>EAA (€/rok)</div>
+    <div class='hero-item'><div class='hero-label'>{T['hero_label_eaa']}</div>
       <div class='hero-value'>{fmt_eur_cs(m['eaa'])}</div></div>
-    <div class='hero-item'><div class='hero-label'>Potenciál P95</div>
+    <div class='hero-item'><div class='hero-label'>{T['hero_label_potential']}</div>
       <div class='hero-value'>{fmt_eur_cs(m['potential'])}</div></div>
-    <div class='hero-item'><div class='hero-label'>Doba návratnosti</div>
+    <div class='hero-item'><div class='hero-label'>{T['hero_label_payback']}</div>
       <div class='hero-value'>{payback_str}</div></div>
-    <div class='hero-item'><div class='hero-label'>P(návratnost)</div>
+    <div class='hero-item'><div class='hero-label'>{T['hero_label_payback_prob']}</div>
       <div class='hero-value'>{pb_prob_str}</div></div>
   </div>
 </div>"""
         st.markdown(f"<div class='hero-card'>{hero_inner}</div>", unsafe_allow_html=True)
 
         # Cash flow grafy – pod sebou pro přímé porovnání
-        st.subheader("📈 " + ("Vývoj peněžních toků" if lang_code == "cs" else "Cash flow over time"))
+        st.subheader("📈 " + T["cf_trajectory_header"])
         for plodina, data in sim_results.items():
             cf_total = data["cf"] * sim_area
             yrs = np.arange(0, data["years"])
@@ -2593,7 +2544,7 @@ with tab_overview:
             st.plotly_chart(fig, use_container_width=True, key=f"cf_tab_{plodina}")
 
         # Histogram celkového zisku – pod sebou
-        st.subheader("📊 " + ("Rozložení celkového zisku" if lang_code == "cs" else "Total profit distribution"))
+        st.subheader("📊 " + T["profit_dist_header"])
         for plodina, data in sim_results.items():
             color = CROP_COLOR.get(data["type"], "#1f77b4")
             fig = go.Figure(data=[go.Histogram(
@@ -2607,13 +2558,8 @@ with tab_overview:
             st.plotly_chart(fig, use_container_width=True, key=f"hist_tab_{plodina}")
 
         # Histogram EAA (ekvivalentní roční anuita) – umožňuje srovnání plodin s rozdílnou životností
-        st.subheader("📊 " + ("Rozložení EAA (ekvivalentní roční anuita)"
-                              if lang_code == "cs"
-                              else "EAA distribution (Equivalent Annual Annuity)"))
-        st.caption(("Roční přepočet NPV; férově srovnává plodiny s rozdílnou životností (M 25 let vs SRC 30 let)."
-                    if lang_code == "cs"
-                    else "Annualized NPV; allows fair comparison between crops with different lifetimes "
-                         "(M 25 yrs vs SRC 30 yrs)."))
+        st.subheader("📊 " + T["eaa_dist_header"])
+        st.caption(T["eaa_dist_caption"])
         for plodina, data in sim_results.items():
             color = CROP_COLOR.get(data["type"], "#1f77b4")
             eaas = data["total_eaas"]
@@ -2640,10 +2586,13 @@ with tab_overview:
             fig.add_vline(x=cvar5_eaa, line=dict(color="#B71C1C", width=2, dash="dash"),
                           annotation_text=f"CVaR₅ = {cvar5_eaa:,.0f}".replace(",", " "),
                           annotation_position="top left")
-            xaxis_title = ("EAA (EUR/rok)" if lang_code == "cs" else "EAA (EUR/year)")
-            yaxis_title = ("Počet scénářů" if lang_code == "cs" else "Number of scenarios")
+            xaxis_title = T["eaa_xaxis"]
+            yaxis_title = T["scenarios_count"]
+            median_fmt = f"{median_eaa:,.0f}".replace(",", " ")
+            p5_fmt = f"{p5_eaa:,.0f}".replace(",", " ")
             fig.update_layout(
-                title=f"{plodina} (medián = {median_eaa:,.0f} €/rok, P5 = {p5_eaa:,.0f} €/rok)".replace(",", " "),
+                title=T["eaa_hist_title"].format(
+                    crop=plodina, median=median_fmt, p5=p5_fmt),
                 xaxis_title=xaxis_title, yaxis_title=yaxis_title,
                 height=340, margin=dict(t=50, b=40),
                 showlegend=False,
@@ -2658,10 +2607,9 @@ with tab_overview:
 # ----- TAB 2: VÝNOSY & CENY -----------------------------------------------
 with tab_yields:
     if not sim_results:
-        _placeholder("Spusťte simulaci tlačítkem výše.",
-                     "Run the simulation with the button above.")
+        _placeholder()
     else:
-        st.subheader("🌱 " + ("Roční výnos sušiny" if lang_code == "cs" else "Annual dry-matter yield"))
+        st.subheader("🌱 " + T["yields_header"])
         for plodina, data in sim_results.items():
             yrs = np.arange(0, data["years"])
             color = CROP_COLOR.get(data["type"], "#ff7f0e")
@@ -2680,7 +2628,7 @@ with tab_yields:
                                height=360, margin=dict(t=40, b=40))
             st.plotly_chart(fig, use_container_width=True, key=f"yield_tab_{plodina}")
 
-        st.subheader("💶 " + ("Vývoj ceny biomasy (OU model)" if lang_code == "cs" else "Biomass price evolution (OU model)"))
+        st.subheader("💶 " + T["prices_header"])
         for plodina, data in sim_results.items():
             yrs = np.arange(0, data["years"])
             color = CROP_COLOR.get(data["type"], "purple")
@@ -2700,9 +2648,7 @@ with tab_yields:
             st.plotly_chart(fig, use_container_width=True, key=f"price_tab_{plodina}")
 
         # --- Nákladové křivky (rozklad: CAPEX / provoz / likvidace) ---------
-        st.subheader("💸 " + ("Vývoj ročních nákladů (rozklad)"
-                              if lang_code == "cs" else
-                              "Annual cost trajectory (decomposition)"))
+        st.subheader("💸 " + T["costs_header"])
         for plodina, data in sim_results.items():
             if "costs" not in data:
                 continue
@@ -2721,18 +2667,17 @@ with tab_yields:
             # Stacked bary pro rozklad
             fig.add_trace(go.Bar(
                 x=yrs, y=mean_setup,
-                name=("Založení / CAPEX" if lang_code == "cs" else "Setup / CAPEX"),
+                name=T["costs_legend_setup"],
                 marker_color="#5C6BC0",
             ))
             fig.add_trace(go.Bar(
                 x=yrs, y=mean_oper,
-                name=("Provozní (údržba + sklizeň + fixní)"
-                      if lang_code == "cs" else "Operating (maintenance + harvest + fixed)"),
+                name=T["costs_legend_oper"],
                 marker_color="#FFB300",
             ))
             fig.add_trace(go.Bar(
                 x=yrs, y=mean_liquid,
-                name=("Likvidace plantáže" if lang_code == "cs" else "Plantation removal"),
+                name=T["costs_legend_liquid"],
                 marker_color="#8D6E63",
             ))
             # Pásmo 5-95 % celkových nákladů (jako sekundární křivky)
@@ -2750,9 +2695,8 @@ with tab_yields:
             ))
             fig.update_layout(
                 title=f"{plodina}",
-                xaxis_title=("Rok projektu" if lang_code == "cs" else "Project year"),
-                yaxis_title=("Roční náklady [EUR/ha]"
-                             if lang_code == "cs" else "Annual cost [EUR/ha]"),
+                xaxis_title=T["costs_x_axis"],
+                yaxis_title=T["costs_y_axis"],
                 barmode="stack",
                 height=380,
                 margin=dict(t=40, b=40),
@@ -2767,18 +2711,15 @@ with tab_yields:
             avg_annual = total_lifetime / data["years"]
             k1, k2, k3 = st.columns(3)
             k1.metric(
-                "Σ náklady (životnost, /ha)" if lang_code == "cs"
-                else "Σ costs (lifetime, /ha)",
+                T["kpi_costs_lifetime"],
                 fmt_eur_cs(total_lifetime),
             )
             k2.metric(
-                "Průměrný roční náklad /ha" if lang_code == "cs"
-                else "Avg. annual cost /ha",
+                T["kpi_costs_annual"],
                 fmt_eur_cs(avg_annual),
             )
             k3.metric(
-                "CAPEX (rok 0–2) /ha" if lang_code == "cs"
-                else "CAPEX (years 0–2) /ha",
+                T["kpi_costs_capex"],
                 fmt_eur_cs(float(np.mean(np.sum(c["setup"][:3] + c["oper"][:3], axis=0)))),
             )
 
@@ -2813,11 +2754,10 @@ with tab_yields:
 # ----- TAB 3: RIZIKO -------------------------------------------------------
 with tab_risk:
     if not sim_results:
-        _placeholder("Spusťte simulaci tlačítkem výše.",
-                     "Run the simulation with the button above.")
+        _placeholder()
     else:
         # Risk metriky karty
-        st.subheader("⚠️ " + ("Klíčové ukazatele rizika" if lang_code == "cs" else "Key risk indicators"))
+        st.subheader("⚠️ " + T["risk_kpi_header"])
         for plodina, data in sim_results.items():
             m = data["metrics"]
             color = COLOR_MISC_DARK if data["type"] == "misc" else COLOR_SRC_DARK
@@ -2825,7 +2765,7 @@ with tab_risk:
                          unsafe_allow_html=True)
             # 1. řádek: NPV-based metriky (celkové)
             st.markdown(f"<p style='color:#666;font-size:13px;margin:4px 0 6px;'>"
-                        f"{'Celkový horizont (NPV)' if lang_code == 'cs' else 'Total horizon (NPV)'}</p>",
+                        f"{T['risk_horizon_label']}</p>",
                         unsafe_allow_html=True)
             r1, r2, r3 = st.columns(3)
             r1.metric(T["risk_std"],  fmt_eur_cs(m['std']))
@@ -2835,14 +2775,11 @@ with tab_risk:
                       delta_color="inverse", help=T["risk_cvar_help"])
             # 2. řádek: EAA-based metriky (roční ekvivalent — srovnatelné mezi M a SRC)
             st.markdown(f"<p style='color:#666;font-size:13px;margin:10px 0 6px;'>"
-                        f"{'Roční ekvivalent (EAA)' if lang_code == 'cs' else 'Annualized (EAA)'}</p>",
+                        f"{T['risk_annual_label']}</p>",
                         unsafe_allow_html=True)
             e1, e2, e3 = st.columns(3)
             e1.metric(T.get("kpi_eaa", "EAA"), fmt_eur_cs(m['eaa']),
-                      help=("Ekvivalentní roční anuita NPV — férové srovnání plodin "
-                            "s rozdílnou životností." if lang_code == "cs"
-                            else "Equivalent annual annuity of NPV — fair comparison "
-                                 "between crops with different lifetimes."))
+                      help=T["risk_eaa_help"])
             e2.metric(T.get("risk_var_eaa", "VaR EAA (5 %)"),
                       fmt_eur_cs(m.get('var_eaa', 0)),
                       delta_color="inverse",
@@ -2897,30 +2834,13 @@ with tab_risk:
 # ----- TAB 4: IRR ----------------------------------------------------------
 with tab_irr:
     if not sim_results:
-        _placeholder("Spusťte simulaci tlačítkem výše.",
-                     "Run the simulation with the button above.")
+        _placeholder()
     else:
-        st.subheader("💰 " + ("Vnitřní výnosové procento (IRR)"
-                              if lang_code == "cs" else
-                              "Internal Rate of Return (IRR)"))
+        st.subheader("💰 " + T["irr_header"])
 
         # === Vysvětlující úvod (bez ~ aby se neformátovalo přes Markdown) ===
-        if lang_code == "cs":
-            st.markdown(
-                f"Pro každý z **{n_sim:,}** MC scénářů ".replace(",", " ") +
-                "řešíme rovnici $\\mathrm{NPV}(r^*) = 0$ a získáváme "
-                "distribuci vnitřních výnosových procent (IRR) napříč "
-                "scénáři. IRR slouží jako přirozený benchmark výnosnosti "
-                "projektu — udává sazbu, kterou by projekt sám o sobě "
-                "„vydělal\" investorovi."
-            )
-        else:
-            st.markdown(
-                f"For each of **{n_sim:,}** MC scenarios ".replace(",", " ") +
-                "we solve $\\mathrm{NPV}(r^*) = 0$ and obtain the IRR "
-                "distribution across scenarios. IRR serves as a natural "
-                "benchmark of project return."
-            )
+        n_sim_str = f"{n_sim:,}".replace(",", " ")
+        st.markdown(T["irr_intro"].format(n=n_sim_str))
 
         # IRR distribuce je předpočítaná při běhu simulace
         irr_dist = st.session_state.get("irr_distributions", {})
@@ -2929,9 +2849,7 @@ with tab_irr:
             return "—" if pd.isna(v) else f"{v*100:+.2f} %"
 
         # === Tabulka metrik IRR per plodina ===
-        st.markdown("### " + ("📊 Metriky distribuce IRR"
-                              if lang_code == "cs" else
-                              "📊 IRR distribution metrics"))
+        st.markdown("### " + T["irr_table_header"])
 
         irr_rows = []
         for plodina, dist in irr_dist.items():
@@ -2947,8 +2865,8 @@ with tab_irr:
                 median_irr = mean_irr = std_irr = float("nan")
                 p5_irr = p25_irr = p75_irr = float("nan")
             irr_rows.append({
-                "Plodina":         plodina,
-                "Validní scénáře": f"{int(dist['valid'].sum())} / {len(dist['irrs'])}",
+                T["compare_col_plodina"]: plodina,
+                T["irr_valid_col"]: f"{int(dist['valid'].sum())} / {len(dist['irrs'])}",
                 "Median IRR":      median_irr,
                 "Mean IRR":        mean_irr,
                 "σ(IRR)":          std_irr,
@@ -2968,9 +2886,7 @@ with tab_irr:
         st.dataframe(styled, use_container_width=True, hide_index=True)
 
         # === Histogram distribuce IRR ===
-        st.markdown("### " + ("📈 Distribuce IRR napříč MC scénáři"
-                              if lang_code == "cs" else
-                              "📈 IRR distribution across MC scenarios"))
+        st.markdown("### " + T["irr_hist_header"])
 
         CROP_COLORS = {"Miscanthus": "#90EE90", "SRC Vrba": "#8B4513"}
         fig_irr = go.Figure()
@@ -2982,7 +2898,7 @@ with tab_irr:
             fig_irr.add_trace(go.Histogram(
                 x=valid_irrs, name=plodina, opacity=0.65,
                 nbinsx=60, marker_color=color,
-                hovertemplate="IRR: %{x:.2f} %<br>Scénářů: %{y}<extra></extra>",
+                hovertemplate=T["irr_hover_count"],
             ))
             # Pouze medián jako vertikální čára
             median_pct = float(np.median(valid_irrs))
@@ -2995,8 +2911,7 @@ with tab_irr:
         fig_irr.update_layout(
             barmode="overlay",
             xaxis_title="IRR (%)",
-            yaxis_title=("Počet scénářů" if lang_code == "cs"
-                         else "Number of scenarios"),
+            yaxis_title=T["scenarios_count"],
             template="plotly_white", height=460,
             margin=dict(l=20, r=20, t=40, b=40),
             legend=dict(orientation="h", yanchor="bottom", y=1.02,
@@ -3005,55 +2920,15 @@ with tab_irr:
         st.plotly_chart(fig_irr, use_container_width=True, key="irr_hist")
 
         # === Metodologická poznámka ===
-        with st.expander("ℹ️ " + ("Co je vnitřní výnosové procento (IRR)?"
-                                   if lang_code == "cs" else
-                                   "What is the Internal Rate of Return?")):
-            if lang_code == "cs":
-                st.markdown(r"""
-**Princip.** Pro každý ze $N$ MC scénářů řešíme rovnici
-$$\mathrm{NPV}_i(r_i^*) = \sum_{t=0}^{T} \frac{CF_{t,i}}{(1+r_i^*)^t} = 0,$$
-čímž získáváme vektor IRR napříč scénáři.
-
-**Interpretace.** IRR je vnitřní výnosnost projektu — sazba, kterou
-by projekt sám o sobě „vydělal" investorovi. Pokud má investor
-požadovaný výnos (cenu kapitálu) *nižší* než IRR, projekt vytváří
-hodnotu; pokud *vyšší*, projekt hodnotu ničí.
-
-**Kvantily distribuce** informují o rozptylu výnosnosti:
-- **Medián IRR** = typický scénář (50 % nad, 50 % pod).
-- **P25 IRR** = konzervativní benchmark (75 % scénářů nad touto úrovní).
-- **P5 IRR** = chvostový scénář (95 % scénářů nad touto úrovní).
-
-**Pozn. ke SRC vrbě.** Pro projekty s end-of-life negativními CF
-(likvidace plantáže) může mít NPV(r) více kořenů; v tom případě hledáme
-nejvyšší hodnotu, nad níž je projekt ztrátový.
-""")
-            else:
-                st.markdown(r"""
-**Principle.** For each MC scenario we solve $\mathrm{NPV}(r^*) = 0$.
-IRR is the project's internal rate of return — the rate at which the
-project would just break even.
-
-**Interpretation.** If the investor's required return is *lower* than
-IRR, the project creates value; if *higher*, it destroys value.
-
-**Note on SRC.** For projects with end-of-life liquidation, NPV may
-have multiple roots; we find the highest rate above which the project
-is unprofitable.
-""")
+        with st.expander("ℹ️ " + T["irr_explainer_title"]):
+            st.markdown(T["irr_explainer_body"])
 
 # ----- TAB 5: CITLIVOSTKA --------------------------------------------------
 with tab_sens:
     if not sim_results:
-        _placeholder("Spusťte simulaci tlačítkem výše.",
-                     "Run the simulation with the button above.")
+        _placeholder()
     elif not sim_sa_sel:
-        info_msg = ("V kroku 4 jste nevybrali žádný parametr pro citlivostní analýzu. "
-                     "Zaškrtněte parametry a spusťte simulaci znovu."
-                     if lang_code == "cs" else
-                     "No sensitivity parameters selected in step 4. "
-                     "Tick parameters and re-run the simulation.")
-        st.info(info_msg)
+        st.info(T["sens_tab_warn_no_param"])
     else:
         param_labels_full  = {k: v[lang_sa] for k, v in SENSITIVITY_PARAMS.items()}
         short_key = f"{lang_sa}_short"
@@ -3086,16 +2961,15 @@ with tab_sens:
                 sa_bar.progress((idx + 1) / len(sim_sa_sel))
 
             y_labels = {
-                "cs": {"profit": "Zisk (€)", "eaa": "EAA (€/rok)",
-                       "std": "Směr. odchylka (€)",
-                       "var": "VaR 5 % (€)", "cvar": "CVaR 5 % (€)",
-                       "payback_prob": "Pravděpodobnost (%)", "payback_yr": "Roky"},
-                "en": {"profit": "Profit (€)", "eaa": "EAA (€/yr)",
-                       "std": "Std. Dev. (€)",
-                       "var": "VaR 5 % (€)", "cvar": "CVaR 5 % (€)",
-                       "payback_prob": "Probability (%)", "payback_yr": "Years"},
-            }[lang_sa]
-            sa_title_eaa = "Citlivost EAA (±10 %)" if lang_sa == "cs" else "EAA Sensitivity (±10 %)"
+                "profit":       T["sa_y_profit"],
+                "eaa":          T["sa_y_eaa"],
+                "std":          T["sa_y_std"],
+                "var":          T["sa_y_var"],
+                "cvar":         T["sa_y_cvar"],
+                "payback_prob": T["sa_y_pb_prob"],
+                "payback_yr":   T["sa_y_pb_yr"],
+            }
+            sa_title_eaa = T["sa_title_eaa"]
 
             charts = [
                 ("profit", SA["sa_title_profit"], y_labels["profit"]),
@@ -3129,16 +3003,7 @@ with tab_sens:
                     "<div style='margin-top:24px'></div>",
                     unsafe_allow_html=True,
                 )
-                tornado_caption = (
-                    "🌪️ **Tornádový graf** — sumarizace všech OAT analýz výše. "
-                    "Parametry seřazené sestupně podle absolutního vlivu na NPV. "
-                    "Top parametr = největší zdroj nejistoty pro ekonomickou návratnost."
-                    if lang_sa == "cs" else
-                    "🌪️ **Tornado chart** — summary of all OAT analyses above. "
-                    "Parameters ranked descending by absolute NPV impact. "
-                    "Top parameter = largest source of economic uncertainty."
-                )
-                st.markdown(tornado_caption)
+                st.markdown(T["tornado_caption"])
                 st.plotly_chart(tornado_fig, use_container_width=True,
                                  key=f"tornado_{plodina}")
             st.divider()
@@ -3306,9 +3171,8 @@ with tab_compare:
     if not detected_zone_label or detected_zone_label not in YIELD_DATA:
         st.warning(COMPARE_T["warn_zone"])
     else:
-        st.info(f"**Zóna:** {detected_zone_label}  |  "
-                f"**Plocha:** {plocha_ha} ha  |  "
-                f"**N simulací:** {n_sim} per kombinace")
+        st.info(T["compare_meta_info"].format(
+            zone=detected_zone_label, area=plocha_ha, n=n_sim))
 
         if st.button(COMPARE_T["btn"], type="primary", key="btn_compare_run"):
             with st.spinner(COMPARE_T["spinner"]):
@@ -3366,19 +3230,12 @@ with tab_compare:
                 }),
                 use_container_width=True, hide_index=True,
             )
-            st.caption(
-                f"Společné parametry: zóna **{detected_zone_label}**, "
-                f"plocha **{plocha_ha} ha**, dotace **{subsidy_pct} %**, "
-                f"diskontní sazba **{discount_pct} %**, korelace ρ = **{rho_input}**, "
-                f"drift **{drift_pct} %/rok**, eskalace nákladů **{cost_esc_pct} %/rok**, "
-                f"pachtovné **{pachtovne} €/ha/rok**."
-                if lang_code == "cs" else
-                f"Common parameters: zone **{detected_zone_label}**, "
-                f"area **{plocha_ha} ha**, subsidy **{subsidy_pct} %**, "
-                f"discount **{discount_pct} %**, correlation ρ = **{rho_input}**, "
-                f"drift **{drift_pct} %/yr**, cost escalation **{cost_esc_pct} %/yr**, "
-                f"rent **{pachtovne} €/ha/yr**."
-            )
+            st.caption(T["compare_common_params"].format(
+                zone=detected_zone_label, area=plocha_ha,
+                subsidy=subsidy_pct, discount=discount_pct,
+                rho=rho_input, drift=drift_pct,
+                esc=cost_esc_pct, rent=pachtovne,
+            ))
 
             # ---------- 2) Risk-return scatter ----------
             st.divider()
@@ -3426,12 +3283,10 @@ with tab_compare:
             mn = np.median([r["EAA"] for r in cmp_res])
             sd = np.median([r["σ ročního CF"] for r in cmp_res])
             fig_sc.add_hline(y=mn, line=dict(dash="dot", color="#888", width=1),
-                              annotation_text=("medián EAA" if lang_code == "cs"
-                                                else "median EAA"),
+                              annotation_text=T["compare_median_eaa"],
                               annotation_position="left")
             fig_sc.add_vline(x=sd, line=dict(dash="dot", color="#888", width=1),
-                              annotation_text=("medián σ" if lang_code == "cs"
-                                                else "median σ"),
+                              annotation_text=T["compare_median_sigma"],
                               annotation_position="top")
             # Zvýraznit "ideální" oblast (vlevo nahoře = nízké σ + vysoké EAA)
             x_min = min(r["σ ročního CF"] for r in cmp_res) * 0.9
@@ -3448,19 +3303,7 @@ with tab_compare:
             st.plotly_chart(fig_sc, use_container_width=True, key="compare_scatter")
 
             # Legenda manuálně (čistý markdown bez div, aby se renderoval bold)
-            legend_md = (
-                "**Tvar:** ● Miscanthus, ◆ SRC vrba &nbsp;&nbsp;|&nbsp;&nbsp; "
-                "**Barva:** kvalita půdy "
-                "(🟢 Optimální · 🟡 Průměrná · 🟠 Neúrodná · ⚪ Nevhodná) "
-                "&nbsp;&nbsp;|&nbsp;&nbsp; "
-                "**Velikost markeru:** P(NPV>0) — větší = stabilnější investice"
-                if lang_code == "cs" else
-                "**Shape:** ● Miscanthus, ◆ SRC willow &nbsp;&nbsp;|&nbsp;&nbsp; "
-                "**Color:** soil quality "
-                "(🟢 Optimal · 🟡 Average · 🟠 Poor · ⚪ Unsuitable) "
-                "&nbsp;&nbsp;|&nbsp;&nbsp; "
-                "**Marker size:** P(NPV>0) — larger = more stable"
-            )
+            legend_md = T["compare_legend"]
             st.markdown(legend_md)
 
             # ---------- 3) Downside risk scatter (CVaR vs EAA) -----------
@@ -3498,12 +3341,10 @@ with tab_compare:
             mn_eaa  = np.median([r["EAA"]     for r in cmp_res])
             md_cvar = np.median([r["CVaR 5%"] for r in cmp_res])
             fig_cv.add_hline(y=mn_eaa, line=dict(dash="dot", color="#888", width=1),
-                              annotation_text=("medián EAA" if lang_code == "cs"
-                                                else "median EAA"),
+                              annotation_text=T["compare_median_eaa"],
                               annotation_position="left")
             fig_cv.add_vline(x=md_cvar, line=dict(dash="dot", color="#888", width=1),
-                              annotation_text=("medián CVaR" if lang_code == "cs"
-                                                else "median CVaR"),
+                              annotation_text=T["compare_median_cvar"],
                               annotation_position="top")
             # "Ideální" oblast — pravý horní kvadrant (vysoké EAA + mírnější CVaR)
             x_max_v = max(r["CVaR 5%"] for r in cmp_res) * 1.05 if max(r["CVaR 5%"] for r in cmp_res) > 0 else max(r["CVaR 5%"] for r in cmp_res) * 0.95
@@ -3542,7 +3383,7 @@ with tab_compare:
                 from io import BytesIO
                 bio = BytesIO()
                 with pd.ExcelWriter(bio, engine="openpyxl") as wr:
-                    df_cmp.to_excel(wr, sheet_name="Srovnání", index=False)
+                    df_cmp.to_excel(wr, sheet_name=T["compare_excel_sheet"], index=False)
                 bio.seek(0)
                 st.download_button(
                     label=COMPARE_T["dl_btn"],
@@ -3624,17 +3465,14 @@ with tab_div:
 
         # ---------- Hezčí 2-sloupcový info-box vstupů ----------
         with st.expander("📋 " + DIV_T["inputs_h"], expanded=False):
-            info_lang = st.session_state["lang"]
             zone_lbl = T["zones"][detected_zone_key]
             soil_lbl = T["soil_opts"][SOIL_KEYS.index(soil_key)]
 
             # 3 skupiny vstupů: lokace+pole / parametry / plodiny
-            if info_lang == "cs":
-                section_titles = ("📍 Lokalita & pole", "⚙️ Stochastické parametry", "🌱 Parametry plodin")
-                yr_unit = "let"; yr_per = "%/rok"
-            else:
-                section_titles = ("📍 Location & field", "⚙️ Stochastic parameters", "🌱 Crop parameters")
-                yr_unit = "yrs"; yr_per = "%/yr"
+            section_titles = (T["div_loc_section"], T["div_param_section"],
+                              T["div_crop_section"])
+            yr_unit = T["div_yr_unit"]
+            yr_per = T["div_yr_per"]
 
             def _row(label, value, icon=""):
                 ico = f"<span style='display:inline-block;width:22px'>{icon}</span>" if icon else ""
@@ -3652,38 +3490,33 @@ with tab_div:
                         f"{title}</div>{body}</div>")
 
             loc_rows = [
-                ("Klimatická zóna" if info_lang=="cs" else "Climate zone", zone_lbl, "🌍"),
-                ("Kvalita půdy" if info_lang=="cs" else "Soil quality", soil_lbl, "🪨"),
-                ("Celková plocha" if info_lang=="cs" else "Total area", f"{plocha_ha:.0f} ha", "📐"),
+                (T["div_loc_zone"], zone_lbl, "🌍"),
+                (T["div_loc_soil"], soil_lbl, "🪨"),
+                (T["div_loc_area"], f"{plocha_ha:.0f} ha", "📐"),
             ]
             param_rows = [
-                ("Diskontní sazba" if info_lang=="cs" else "Discount rate",
-                 f"{discount_pct:.1f} %", "💰"),
-                ("Dotace na založení" if info_lang=="cs" else "Establishment subsidy",
-                 f"{subsidy_pct} %", "🏛️"),
-                ("Pachtovné" if info_lang=="cs" else "Land rent",
+                (T["div_param_discount"], f"{discount_pct:.1f} %", "💰"),
+                (T["div_param_subsidy"], f"{subsidy_pct} %", "🏛️"),
+                (T["div_param_rent"],
                  (f"{pachtovne} €/ha/{yr_unit}" if pachtovne > 0
-                   else ("vlastní pozemek" if info_lang=="cs" else "owned land")),
+                  else T["div_param_rent_owned"]),
                  "🏡"),
-                ("Korelace ρ (počasí↔cena)" if info_lang=="cs" else "Correlation ρ (weather↔price)",
-                 f"{rho_input:+.2f}", "🔗"),
-                ("Dekarbonizační drift" if info_lang=="cs" else "Decarbonization drift",
-                 f"{drift_pct:+.1f} {yr_per}", "📈"),
-                ("Eskalace nákladů" if info_lang=="cs" else "Cost escalation",
-                 f"{cost_esc_pct:+.1f} {yr_per}", "📊"),
+                (T["div_param_rho"], f"{rho_input:+.2f}", "🔗"),
+                (T["div_param_drift"], f"{drift_pct:+.1f} {yr_per}", "📈"),
+                (T["div_param_costesc"], f"{cost_esc_pct:+.1f} {yr_per}", "📊"),
             ]
             # Sadební materiál = hustota × cena
             misc_sadba = div_misc_params["hustota_vysadby"] * div_misc_params["cena_sadby_ks"]
             src_sadba  = div_src_params["hustota_vysadby"]  * div_src_params["cena_sadby_ks"]
             crop_rows = [
-                (f"🌾 Miscanthus – výnos", f"{div_misc_y[0]}–{div_misc_y[1]} t/ha", ""),
-                (f"🌾 Miscanthus – délka projektu", f"{int(div_misc_params['zivotnost'])} {yr_unit}", ""),
-                (f"🌾 Miscanthus – sadební materiál", f"{misc_sadba:,.0f} €/ha".replace(",", " "), ""),
-                (f"🌾 Miscanthus – počáteční cena", f"{div_misc_params['prodejni_cena_start']:.0f} €/t", ""),
-                (f"🌳 SRC vrba – výnos", f"{div_src_y[0]}–{div_src_y[1]} t/ha", ""),
-                (f"🌳 SRC vrba – délka projektu", f"{int(div_src_params['zivotnost'])} {yr_unit}", ""),
-                (f"🌳 SRC vrba – sadební materiál", f"{src_sadba:,.0f} €/ha".replace(",", " "), ""),
-                (f"🌳 SRC vrba – počáteční cena", f"{div_src_params['prodejni_cena_start']:.0f} €/t", ""),
+                (T["div_crop_misc_yield"], f"{div_misc_y[0]}–{div_misc_y[1]} t/ha", ""),
+                (T["div_crop_misc_life"], f"{int(div_misc_params['zivotnost'])} {yr_unit}", ""),
+                (T["div_crop_misc_seed"], f"{misc_sadba:,.0f} €/ha".replace(",", " "), ""),
+                (T["div_crop_misc_price"], f"{div_misc_params['prodejni_cena_start']:.0f} €/t", ""),
+                (T["div_crop_src_yield"], f"{div_src_y[0]}–{div_src_y[1]} t/ha", ""),
+                (T["div_crop_src_life"], f"{int(div_src_params['zivotnost'])} {yr_unit}", ""),
+                (T["div_crop_src_seed"], f"{src_sadba:,.0f} €/ha".replace(",", " "), ""),
+                (T["div_crop_src_price"], f"{div_src_params['prodejni_cena_start']:.0f} €/t", ""),
             ]
 
             info_col1, info_col2 = st.columns([1, 1])
@@ -3696,11 +3529,8 @@ with tab_div:
         # ---------- Multi-select metrik (bez radio) ----------
         st.markdown(f"**{DIV_T['metric']}** "
                     f"<span style='color:#888;font-size:13px'>"
-                    f"(můžete vybrat více – výsledky se zobrazí pod sebou)"
-                    f"</span>" if lang_code == "cs" else
-                    f"**{DIV_T['metric']}** "
-                    f"<span style='color:#888;font-size:13px'>"
-                    f"(pick multiple – results stack vertically)</span>",
+                    f"{T['div_metric_subtitle']}"
+                    f"</span>",
                     unsafe_allow_html=True)
         sel_cols = st.columns(len(DIVERSIFY_METRICS))
         div_selected_metrics = []
@@ -3712,8 +3542,7 @@ with tab_div:
                     div_selected_metrics.append(mk)
 
         if not div_selected_metrics:
-            st.info("Vyberte alespoň jeden ukazatel optimalizace." if lang_code == "cs" else
-                    "Pick at least one optimization metric.")
+            st.info(T["div_pick_metric"])
 
         if st.button(DIV_T["btn"], type="primary", key="btn_diversify",
                      disabled=(not div_selected_metrics)):
@@ -3768,7 +3597,7 @@ with tab_div:
                 ))
                 fig_field.add_trace(go.Bar(
                     y=["🌾"], x=[area_S], orientation="h",
-                    name="SRC vrba",
+                    name=T["crop_src_chart_name"],
                     marker=dict(color=COLOR_SRC, line=dict(color=COLOR_SRC_DARK, width=2)),
                     text=f"<b>{opt_pct_s} %</b><br>{area_S:.1f} ha", textposition="inside",
                     textfont=dict(color="white", size=15),
@@ -3776,7 +3605,7 @@ with tab_div:
                 fig_field.update_layout(
                     barmode="stack", height=200,
                     title=DIV_T["field"], title_x=0,
-                    xaxis=dict(title="Plocha (ha)", range=[0, plocha_ha]),
+                    xaxis=dict(title=T["div_field_area"], range=[0, plocha_ha]),
                     yaxis=dict(showticklabels=False),
                     legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5),
                     margin=dict(t=50, b=40, l=10, r=10),
