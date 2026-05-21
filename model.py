@@ -40,26 +40,12 @@ SOIL_KEYS = ["Optimální", "Průměrná", "Neúrodná", "Nevhodná"]
 # DATA
 # ===========================================================================
 DEFAULT_COSTS = {
-    # Hodnoty kalibrované dle Weger (2021), Wagner (2022), Knápek a kol. (2024),
-    # konzultace VÚKOZ Průhonice 2026 a Trogl 2026 (kontakt na německého dodavatele
-    # oddenků Miscanthus, region Cheb–Františkovy Lázně).
-    #
-    # KONVENCE: zivotnost = celková délka projektu v letech (vč. roku 0 = příprava).
-    #   Miscanthus 25 = ROK 0 (příprava) až ROK 24 (poslední sklizeň + likvidace)
-    #   SRC vrba   30 = ROK 0 (příprava) až ROK 29 (konečná orba)
     "Miscanthus": {
         # Příprava + výsadba (jednorázově)
         "prep_pozemku":      104.0,    # ROK 0 – aktualizace VÚKOZ 2026
         "hustota_vysadby":   8000,     # oddenků/ha (Weger 2021)
         "cena_sadby_ks":     0.30,     # EUR/ks – kompromis mezi Trogl 2026 (CZ, 0,50)
-                                       # a EU dodavateli miscanthus.eu (0,14–0,38 dle objemu),
-                                       # zahrnuje dopravu a manipulaci
         "cena_vysadby_ks":   0.06,     # EUR/ks = 1,5 Kč/oddenek ÷ 25 CZK/EUR
-                                       # — sazba převzata od VÚKOZ 2026 pro výsadbu řízků SRC;
-                                       # pro Miscanthus expertní odhad analogií (adaptované
-                                       # řízkovací stroje, technologicky obdobná operace)
-        # mech_vysadba se počítá automaticky: hustota × cena_vysadby_ks
-        # = 8000 × 0,06 = 480 EUR/ha
         "udrzba_1_2_rok":    145.0,    # EUR/ha celkem za roky 1+2 (rozděleno 50/50)
         # Roční provozní (od ROK 3+)
         "udrzba_rocni":      100.0,    # EUR/ha/rok – hnojení 60 kg N/ha NPK každé 3 roky
@@ -68,20 +54,6 @@ DEFAULT_COSTS = {
         # Sklizeň a likvidace
         "sklizen_per_tuna":  25.0,
         "likvidace":         80.0,     # EUR/ha – snadné zničení oddenků orbou (ROK 24,
-                                       # poslední rok = poslední sklizeň + likvidace)
-        # Tržní a strukturální
-        # Cena 116 EUR/t DM = bottom-up:
-        #   P_ref × LHV_DM − T_DM = 7,60 × 17,61 − 17,9 ≈ 116 EUR/t DM
-        # Zdroje:
-        #   P_ref = 7,60 EUR/GJ (190 Kč/GJ při kurzu 25 CZK/EUR; Vyhláška
-        #     315/2025 Sb. novelizující 79/2022 Sb., příloha č. 2; cit. v ERÚ
-        #     Cenovém výměru 8/2025, str. 9, 13 — biomasa kat. 1 cíleně pěstovaná)
-        #   LHV_DM = 17,61 GJ/t DM (THETA Metodika 2024, Tab. 4)
-        #   T_DM = 17,9 EUR/t DM (AKO Blatný 2025: 49 Kč/km + 100 Kč/15min
-        #     manipulace; 1,4 jízdy/ha při sypné hmotnosti řezanky 125 kg/m³
-        #     (střed 100–140 dle Caslin 2010, Smeets 2009) a vlhkosti 20 %,
-        #     referenční vzdálenost 30 km jednosměrně → 134 EUR/jízda)
-        # Detail v sekci 3.5 DP. Citlivostka v rozsahu ±20 %.
         "prodejni_cena_start": 116.0,
         "riziko_fail":         0.05,
         "zivotnost":           25,     # celková délka projektu (ROK 0..24)
@@ -93,8 +65,6 @@ DEFAULT_COSTS = {
         "hustota_vysadby":   7000,     # řízků/ha (Weger 2021)
         "cena_sadby_ks":     0.12,     # EUR/ks ≈ 3 Kč/řízek
         "cena_vysadby_ks":   0.06,     # EUR/ks = 1,5 Kč/řízek ÷ 25 CZK/EUR (VÚKOZ 2026)
-        # mech_vysadba se počítá automaticky: hustota × cena_vysadby_ks
-        # = 7000 × 0,06 = 420 EUR/ha
         "udrzba_1_2_rok":    145.0,    # EUR/ha celkem za roky 1+2
         # Roční provozní (od ROK 3+ údržba mezi sklizněmi)
         "udrzba_rocni":      50.0,     # EUR/ha/rok – aktualizace VÚKOZ 2026
@@ -102,22 +72,6 @@ DEFAULT_COSTS = {
         # Sklizeň a likvidace
         "sklizen_per_tuna":  40.0,     # EUR/t – aktualizace VÚKOZ 2026 (omezená nabídka techniky v ČR)
         "likvidace":         620.0,    # EUR/ha – biologicko-mechanické rušení
-                                       # rozděleno 189 + 189 + 240 v letech 27/28/29
-        # Tržní a strukturální
-        # Cena 128 EUR/t DM = bottom-up:
-        #   P_ref × LHV_DM − T_DM = 7,60 × 18,39 − 11,3 ≈ 128 EUR/t DM
-        # Zdroje:
-        #   P_ref = 7,60 EUR/GJ (190 Kč/GJ; Vyhláška 315/2025 Sb., příl. č. 2;
-        #     cit. v ERÚ Cenovém výměru 8/2025, str. 9, 13 — biomasa kat. 1)
-        #   LHV_DM = 18,39 GJ/t DM (THETA Metodika 2024, Tab. 4 — RRD/SRC vrba)
-        #   T_DM = 11,3 EUR/t DM (AKO Blatný 2025: 49 Kč/km + 100 Kč/15min
-        #     manipulace; 9,5 t DM/ha průměrný výnos × 3 roky / 0,48 vlhkost
-        #     ≈ 59,4 t mokré štěpky/ha → 2,4 jízdy/ha; sypná hmotnost
-        #     333 kg/m³ čerstvé štěpky dle Stolarski 2019;
-        #     referenční vzdálenost 30 km jednosměrně → 134 EUR/jízda)
-        # Pozn.: Nižší T_DM než u Miscanthusu — SRC štěpka má vyšší sypnou
-        # hmotnost, takže méně jízd/t DM (objemový vs hmotnostní limit).
-        # Detail v sekci 3.5 DP. Citlivostka v rozsahu ±20 %.
         "prodejni_cena_start": 128.0,
         "riziko_fail":         0.05,
         "zivotnost":           30,     # celková délka projektu (ROK 0..29)
@@ -125,24 +79,7 @@ DEFAULT_COSTS = {
     },
 }
 
-# Výnosové rozsahy [min, max] t/ha sušiny – diferencováno dle klimatické zóny a kvality půdy.
-#
-# Zdroje:
-#   Miscanthus – Lewandowski et al. (2000), Clifton-Brown et al. (2024), OPTIMISC EU FP7,
-#                Strašil (2003–2012), Weger/VÚKOZ, Castellano Albors (2025)
-#   SRC vrba   – Stolarski et al. (2019), Aylott et al. (2008), Weger & Bubeník,
-#                Castellano Albors (2025), Forest Research UK
-#
-# Klíčové odlišnosti oproti původnímu modelu (kde byly všechny zóny identické):
-#   • Miscanthus dominuje v tropech a Jižní Evropě díky C4 fotosyntéze.
-#   • SRC vrba je nejsilnější v Severní Evropě (domácí plodina Skandinávie).
-#   • Miscanthus má kritické omezení v Severní Evropě (přežívání zimy pod −3.5 °C).
-#   • Suché zóny postihují oba druhy, vrba je odolnější na písčitých půdách.
 YIELD_DATA = {
-    # Hodnoty dle Tabulky 3.1 diplomové práce (Dostál 2026).
-    # Střední Evropa: konzultace s VÚKOZ Průhonice; ostatní zóny dle mezinárodní literatury
-    # (Abdalla 2024, Lewandowski 2000, Jørgensen 2003, Castellano Albors 2025, Verwijst 2013,
-    # Bacenetti 2016, Richard 2019, Ouattara 2022).
     "Tropické a Subtropické": {
         "Optimální": {"M_giganteus": [20, 30], "SRC": [18, 25]},
         "Průměrná":  {"M_giganteus": [12, 20], "SRC": [10, 18]},
@@ -260,10 +197,6 @@ def run_param_sensitivity(param_key, base_params, y_bounds, crop_type, n_sim,
                           weather_prob=0.05, src_tech="Direct Chip",
                           rho=0.0, drift=0.010, cost_escalation=0.02,
                           pachtovne=0.0, soil_quality="Průměrná"):
-    """
-    Spustí simulaci pro jeden parametr v 11 krocích.
-    Speciální absolutní osy: 'decarbon_drift' (−5 až +5 %), 'cost_escalation' (0 až 5 %).
-    """
     profits, eaas, stds, vars_, cvars = [], [], [], [], []
     payback_probs, payback_years = [], []
 
@@ -387,7 +320,6 @@ CROP_COLOR = {
 
 
 def crop_display(crop_key, lang):
-    """Zobrazovaný název plodiny dle jazyka. Interní klíč zůstává 'SRC Vrba'."""
     if crop_key in ("SRC Vrba", "SRC", "src"):
         return "RRD vrba" if lang == "cs" else "SRC willow"
     if crop_key in ("Miscanthus", "M_giganteus", "misc"):
@@ -396,7 +328,6 @@ def crop_display(crop_key, lang):
 
 
 def fmt_eur_cs(val, decimals=0):
-    """České formátování: 1 234 567 € (mezery jako oddělovač tisíců)."""
     if val is None or (isinstance(val, float) and (np.isnan(val) or np.isinf(val))):
         return "N/A"
     s = f"{val:,.{decimals}f}".replace(",", " ").replace(".", ",")
@@ -411,10 +342,6 @@ def fmt_int_cs(val):
 
 def make_sensitivity_line_chart(all_sa, metric_key, title, yaxis_label,
                                 param_labels_short, lang_code):
-    """
-    Spojnicový graf: X = odchylka parametru (%) nebo absolutní hodnota (drift), Y = metrika.
-    Pokud některý parametr má is_absolute_axis=True, vykreslí se na sekundární ose X nahoře.
-    """
     # Rozdělíme parametry: relativní odchylka (dolní osa) vs absolutní (horní osa)
     rel_keys = [k for k, v in all_sa.items() if not v.get("is_absolute_axis")]
     abs_keys = [k for k, v in all_sa.items() if v.get("is_absolute_axis")]
@@ -450,8 +377,6 @@ def make_sensitivity_line_chart(all_sa, metric_key, title, yaxis_label,
 
     fig.add_vline(x=0, line_dash="dash", line_color="gray", line_width=1)
 
-    # Titulek umístíme nad celý graf; pokud je aktivní sekundární osa (nahoře),
-    # potřebuje víc místa, aby se popisek osy nepřekrýval s názvem grafu.
     has_abs = bool(abs_keys)
     top_margin = 120 if has_abs else 60
     title_y = 0.99 if has_abs else 0.95
@@ -482,20 +407,6 @@ def make_sensitivity_line_chart(all_sa, metric_key, title, yaxis_label,
 
 def make_tornado_chart(all_sa, metric_key, param_labels_full, lang_code,
                         baseline_value=None, top_n=10):
-    """
-    Tornádový graf: horizontální bary řazené sestupně podle |max impact|.
-
-    Pro každý parametr v all_sa:
-      - low_delta  = metric_at_lowest_step − metric_at_zero_step
-      - high_delta = metric_at_highest_step − metric_at_zero_step
-      - impact     = max(|low_delta|, |high_delta|)
-
-    Modrý levý bar = efekt poklesu parametru (-10 %).
-    Červený pravý bar = efekt nárůstu parametru (+10 %).
-    Vertikální čára na 0 = baseline.
-
-    Použití: jeden tornádo na jednu metriku (typicky 'profit' = NPV) per plodina.
-    """
     if not all_sa:
         return None
 
@@ -611,26 +522,6 @@ def determine_zone(lat, avg_temp, avg_rain):
 # ===========================================================================
 # Weger 2021 výnosová křivka pro Miscanthus × giganteus
 # ===========================================================================
-# Zdroj: Weger et al. (2021) "Can Miscanthus Fulfill Its Expectations as
-# an Energy Biomass Source in the Current Conditions of the Czech Republic?"
-# Agriculture 11(1):40, Figure 4 (Yc 1–6 yield curves).
-# Hodnoty přečteny přímo z grafu pro křivku Yc 6 (peak 15,5 t DM/ha)
-# a normalizovány na peak = 1,000. Všech 6 publikovaných křivek (Yc 1–6) má
-# stejný relativní tvar, liší se pouze absolutním peak yieldem podle
-# stanoviště – proto profil aplikujeme univerzálně přes Y_max scaling.
-#
-# DŮLEŽITÉ: Profil začíná hodnotou Weger Y3 (16 %), protože v modelu jsou
-# ROK 0 (příprava) + ROK 1 (sadba/výsadba) + ROK 2 (údržba) zachyceny jako
-# setup phase BEZ harvestu (yields[0:3] = 0). První produkční rok (ROK 3)
-# odpovídá Weger Y3 = 16 %, ROK 4 = Weger Y4 = 94 % (PRUDKÝ NÁRŮST),
-# ROK 5 = Weger Y5 = 100 % (PEAK).
-#
-# Profile[i] aplikuje na simulační rok (i + 3) v 0-indexaci (= i + 4 v
-# 1-indexaci textu DP), tj. yields[n_setup + i] = Profile[i] × Y_max.
-#
-# Profile pokrývá 22 produkčních let (ROK 3–24 simulace, t.j. 25letá životnost),
-# což odpovídá Weger Y3–Y16 (publikovaná data) plus Y17–Y24 (extrapolace
-# mírnějšího úpadku).
 MISCANTHUS_2021_PROFILE = np.array([
     0.00,  # ROK 1 simulace = Weger Y1 – rok výsadby, žádný harvestable výnos
     0.03,  # ROK 2 simulace = Weger Y2 – tiny early biomass (~3 % peaku)
@@ -662,38 +553,9 @@ MISCANTHUS_2021_PROFILE = np.array([
 
 
 def gompertz_growth(t_arr, y_max=1.0, b=None, c=None):
-    """
-    Výnosová křivka Miscanthus × giganteus dle Weger 2021 (Agriculture 11(1):40).
-
-    Funkce vrací relativní roční výnos (peak = 1,000) pro daný rok produkce
-    (t = 1 odpovídá prvnímu produkčnímu roku po setup fázi, t.j. ROKu 3
-    simulace, což je Weger Y3 = 16 % peaku).
-
-    Použití v simulaci: roční výnos = gompertz_growth(t) × Y_max × weather(t).
-    Y_max je interpretován jako PEAK roční výnos (špičkový rok plantáže).
-
-    Parametry b, c zachovány v signatuře pro zpětnou kompatibilitu, ale nejsou
-    používány — funkce nyní využívá piecewise-konstantní profil z grafu Weger
-    2021 Yc 6.
-
-    Charakteristika křivky (číslováno dle ROK simulace):
-      - ROK 0 (mimo profil): příprava pozemku, žádný harvest
-      - ROK 1 (mimo profil): sadba, žádný harvest
-      - ROK 2 (mimo profil): údržba, žádný harvest
-      - ROK 3 (Profile[0]): 16 % peaku – první malý výnos
-      - ROK 4 (Profile[1]): 94 % – PRUDKÝ NÁRŮST
-      - ROK 5–8 (Profile[2..5]): peak plateau (97–100 %)
-      - ROK 9–14 (Profile[6..11]): postupný úpadek (90 → 65 %)
-      - ROK 15–16 (Profile[12..13]): zrychlený úpadek (55 → 48 %)
-      - ROK 17–24 (Profile[14..21]): extrapolovaný mírný úpadek (46 → 33 %)
-      - Y17–Y25: extrapolovaný mírný úpadek (46 → 32 %)
-    """
     t = np.asarray(t_arr, dtype=float)
     n_p = len(MISCANTHUS_2021_PROFILE)
     idx = np.clip((t - 1).astype(int), 0, n_p - 1)
-    # Steady-state extrapolace: pro t > n_p vrací poslední hodnotu profilu
-    # (cca 30 % peaku pro Miscanthus). Konzervativní předpoklad — plantáž
-    # ke konci životnosti drží nízkou úroveň úpadku, ne náhlý pád na 0.
     valid = (t >= 1)
     return np.where(valid, y_max * MISCANTHUS_2021_PROFILE[idx], 0.0)
 
@@ -701,17 +563,6 @@ def gompertz_growth(t_arr, y_max=1.0, b=None, c=None):
 # ===========================================================================
 # Weger 2025 expertní harvest profily pro SRC vrbu (4 kvality půdy)
 # ===========================================================================
-# Zdroj: Aktualizace Weger 2025 (VÚKOZ Průhonice), tabulka výnosových křivek
-# RRD plantáže pro 7 sklizní v 3letém obmýtí, sloupce PO0–PO6.
-# Mapování PO tříd → naše 4 kvality půdy (per Dostál 2026):
-#   - Nevhodná  = PO0  (Ȳ = 2 t DM/ha/rok)
-#   - Neúrodná  = průměr(PO1, PO2)  (Ȳ ≈ 5)
-#   - Průměrná  = průměr(PO3, PO4)  (Ȳ ≈ 9)
-#   - Optimální = průměr(PO5, PO6)  (Ȳ ≈ 13)
-# Hodnoty H1–H7 získány vydělením fresh-yield v každé sklizni hodnotou max
-# sklizně příslušného PO sloupce (normalizace na peak = 1,000).
-# Osmá hodnota (H8) je extrapolace pokračujícího úpadku: H7 × (H7/H6),
-# tj. závislá na kvalitě půdy — horší půda → rychlejší úpadek.
 WEGER_2025_HARVEST = {
     "Nevhodná":  np.array([0.090, 0.607, 1.000, 1.000, 0.848, 0.545, 0.152, 0.042]),
     "Neúrodná":  np.array([0.186, 0.601, 0.932, 1.000, 0.932, 0.660, 0.312, 0.148]),
@@ -721,35 +572,6 @@ WEGER_2025_HARVEST = {
 
 
 def src_yield_curve(t_arr, soil_quality="Průměrná"):
-    """
-    Relativní roční produkce suché hmoty SRC vrby v průběhu životnosti plantáže.
-
-    Model: piecewise-konstantní v rámci 3letých sklizňových cyklů, kalibrovaný
-    na expertní data Weger 2025 (VÚKOZ Průhonice). Funkce vrací přímo
-    relativní výnos vůči peaku (max = 1,000), bez další normalizace.
-
-    Profil dle kvality půdy:
-      - Nevhodná: rychlý úpadek po peak (H8 ≈ 4 % peaku)
-      - Neúrodná: středně rychlý úpadek (H8 ≈ 15 %)
-      - Průměrná: postupný úpadek (H8 ≈ 33 %)
-      - Optimální: pomalý úpadek (H8 ≈ 36 %)
-
-    Použití v simulaci:
-        annual_growth(t) = src_yield_curve(t, q) × Y_max × weather(t)
-
-    Y_max je interpretován jako PEAK roční výnos (t DM/ha/rok ve špičce
-    plantáže). Sklizeň za 3letý cyklus h v roce sklizně:
-        H_h = sum_{t in cycle h} annual_growth(t) ≈ 3 × WEGER[h] × Y_max
-    (neboť všechny roky v rámci jednoho cyklu mají stejný faktor a
-     průměrné weather ≈ 1,0).
-
-    Charakteristiky všech profilů:
-      - Etablace (rok 1-3): velmi nízký výnos, plantáž zakládá kořenový systém
-      - Růst do peaku (rok 4-9): zrychlený růst, dorůstání pařezového systému
-      - Peak plateau (rok 9-12): maximum produktivity = Y_max × 1,000
-      - Postupný úpadek (rok 13-24): empiricky pozorovaný pokles dlouhých plantáží,
-        rychlost úpadku závisí na kvalitě půdy
-    """
     t = np.asarray(t_arr, dtype=float)
     if soil_quality not in WEGER_2025_HARVEST:
         soil_quality = "Průměrná"  # fallback pro neznámé kategorie
@@ -758,21 +580,12 @@ def src_yield_curve(t_arr, soil_quality="Průměrná"):
 
     # Index cyklu pro každý rok t (t=1..24): cycle = (t-1) // 3
     cycle = np.clip(((t - 1) // 3).astype(int), 0, n_h - 1)
-    # Steady-state extrapolace: pro t > 24 (8 sklizní) vrací poslední H[7]
-    # (= H8 dané kvality půdy: 0,042 nevhodná → 0,364 optimální).
-    # Konzervativní předpoklad — plantáž drží úroveň posledního cyklu.
     valid = (t >= 1)
 
     return np.where(valid, H[cycle], 0.0)
 
 
 def equivalent_annual_annuity(npv, years, discount_rate):
-    """
-    Equivalent Annual Annuity – ročně přepočtená hodnota NPV.
-    Umožňuje férové srovnání plodin s různou životností (Miscanthus 25 let vs SRC 30 let).
-    Pro r=0 degeneruje na prostý průměr NPV/n.
-    npv může být skalár nebo numpy array (pro vektorizaci přes scénáře).
-    """
     if discount_rate <= 0:
         return npv / years
     factor = discount_rate / (1.0 - (1.0 + discount_rate) ** (-years))
@@ -780,26 +593,6 @@ def equivalent_annual_annuity(npv, years, discount_rate):
 
 
 def compute_irr_distribution(cf_matrix, hi=2.00):
-    """
-    Pro každý MC scénář (sloupec cf_matrix) řeší NPV(r) = 0 a vrátí distribuci IRR.
-
-    Strategie: hledáme \"investor IRR\" — tj. nejvyšší r, nad nímž je projekt
-    ztrátový (NPV < 0). To je ekonomicky relevantní IRR i u projektů
-    s end-of-life negativními CF (likvidace SRC vrby), kde NPV(r) může být
-    nemonotónní a~mít více kořenů.
-
-    Algoritmus:
-      1. Pokud NPV(0) > 0  → IRR leží v~[0, hi]  (ziskový projekt)
-      2. Pokud NPV(0) < 0  → IRR leží v~[lo, 0]  (ztrátový projekt)
-      3. Jinak NaN.
-
-    cf_matrix : np.ndarray  shape (years, n_sim)
-    hi        : horní mez prohledávání pro ziskové projekty (default 200 %)
-
-    Vrací:
-      irr   : np.ndarray shape (n_sim,)
-      valid : np.ndarray bool shape (n_sim,)
-    """
     years, n_sim = cf_matrix.shape
     t_arr = np.arange(years, dtype=float)
     irrs  = np.full(n_sim, np.nan)
@@ -827,8 +620,6 @@ def compute_irr_distribution(cf_matrix, hi=2.00):
                 npv_at_lo = npv_func(LO_LOSS)
                 if np.isfinite(npv_at_lo) and npv_at_lo > 0:
                     irrs[i] = brentq(npv_func, LO_LOSS, 0.0, maxiter=100, xtol=1e-6)
-            # Jinak (NPV(0) > 0 a NPV(hi) > 0): IRR > hi — extrémně ziskové,
-            # nezvyklé; nereportujeme.
         except (ValueError, OverflowError, ZeroDivisionError):
             continue
 
@@ -837,18 +628,6 @@ def compute_irr_distribution(cf_matrix, hi=2.00):
 
 
 def derive_discount_rate_from_irr(irrs, r_f=0.025, sharpe_target=0.4):
-    """
-    Z distribuce IRR odvodí 3 varianty doporučeného diskontu:
-
-    Vrací dict:
-      median       : medián IRR (50 % scénářů ho překoná) — "fair return"
-      sharpe_based : r_f + S* × σ(IRR) — Sharpe-based hurdle rate
-      var_5        : 5. percentil IRR — 95% pravděpodobnost akceptace
-      var_25       : 25. percentil IRR — 75% pravděpodobnost akceptace
-      mean         : průměr IRR — očekávaný výnos
-      std          : σ(IRR) — volatilita výnosu
-      risk_premium : E[IRR] − r_f — implikovaná riziková prémie nad bezrizikovou
-    """
     valid_irrs = irrs[~np.isnan(irrs)]
     if len(valid_irrs) == 0:
         return {k: float("nan") for k in
@@ -870,29 +649,6 @@ def derive_discount_rate_from_irr(irrs, r_f=0.025, sharpe_target=0.4):
 
 def ou_price_process(years, n_sim, p0, mu, theta=0.25, sigma=15.0,
                      drift=0.010, correlated_noise=None, clip_lo=35, clip_hi=160):
-    """
-    Ornstein-Uhlenbeck mean-reverting cenový model s dlouhodobým cenovým driftem.
-
-    Na rozdíl od GBM má cena tendenci vracet se k dlouhodobému průměru (mu),
-    což lépe odpovídá chování komoditních trhů s biomasou – při vysoké ceně
-    poptávka klesá (substituce jinými palivy), při nízké nabídka klesá.
-
-    Parametry:
-      p0     – počáteční cena (EUR/t)
-      mu     – výchozí dlouhodobý průměr ceny (EUR/t), „gravitační střed"
-      theta  – rychlost návratu k průměru (0.25 = cca 4 roky na polovinu odchylky)
-      sigma  – roční volatilita v EUR/t (ne v procentech)
-      drift  – roční reálný růst průměrné ceny (default 0.010 = 1.0 %/rok),
-               odráží dekarbonizační prémii a rostoucí poptávku po biomase
-      correlated_noise – korelovaný šum z Gaussovské kopule (shape: years × n_sim)
-      clip_lo, clip_hi – cenové limity (pojistka, ne hlavní regulátor)
-
-    Dle literatury (Hull 2018, Ornstein-Uhlenbeck pro komodity):
-      dP = θ(μ(t) − P)dt + σdW,  kde μ(t) = μ₀ · (1 + drift)^t
-    Diskrétní verze (dt=1 rok):
-      mu_t      = mu * (1 + drift)^t
-      P(t+1)    = P(t) + θ(mu_t − P(t)) + σ·ε(t)
-    """
     prices = np.zeros((years, n_sim))
     prices[0, :] = p0
     for t in range(1, years):
@@ -910,11 +666,6 @@ def ou_price_process(years, n_sim, p0, mu, theta=0.25, sigma=15.0,
 
 
 def generate_correlated_shocks(years, n_sim, rho=0.0):
-    """
-    Korelované uniformní veličiny (Choleskyho dekompozice + Φ-transformace).
-    rho = 0 → nezávislé počasí a cena (default po revizi 2026).
-    rho < 0 → natural hedge (vysoký výnos → nižší cena).
-    """
     L     = np.linalg.cholesky(np.array([[1.0, rho], [rho, 1.0]]))
     z_cor = L @ np.random.standard_normal((2, years * n_sim))
     u     = norm.cdf(z_cor)
@@ -924,28 +675,6 @@ def generate_correlated_shocks(years, n_sim, rho=0.0):
 def apply_catastrophic_scenario(wm, n_sim, years, duration=10,
                                 factor_range=(0.40, 0.60),
                                 start_window=None):
-    """
-    Katastrofický scénář: pro každou MC simulaci náhodně vybere
-    interval `duration` po sobě jdoucích let, kdy je výnosový multiplikátor
-    v každém roce nezávisle redukován na náhodný faktor v rozsahu
-    `factor_range` (default 40--60 %).
-
-    Modeluje dlouhotrvající nepříznivé klimatické období (sucho, opakované
-    extrémní teploty) s vnitrodekádní variabilitou intenzity — každý rok
-    v zasaženém intervalu má vlastní nezávislý redukční faktor, což lépe
-    odráží reálnou agronomickou variabilitu sucha (rok co rok jiná
-    intenzita), než kdyby všechny roky měly stejnou redukci.
-
-    `start_window` : (min_start, max_start) — povolený rozsah startovního
-        roku. Default None = (0, years - duration), tj. kdekoli kde se
-        celé okno vejde do horizontu. Pro restrikci na produktivní fázi
-        plantáže lze předat užší okno (např. (3, years - duration - 3)
-        pro SRC se setupem 0--2 a likvidací posledních 3 roky).
-
-    Garantuje, že vybraný interval bude **celých `duration` let**
-    a~vejde se v~horizontu (nezačíná v~předposledním roce ap.).
-    Modifikuje `wm` in-place a vrací jej.
-    """
     if duration > years:
         return wm  # horizont je kratší než katastrofa
 
@@ -980,35 +709,16 @@ def simulate_miscanthus(n_sim, years, params, yield_bounds, subsidy_perc,
                         weather_prob=0.05, rho=0.0, drift=0.010,
                         cost_escalation=0.02, pachtovne=0.0,
                         catastrophic=False, sigma_P=20.0):
-    """
-    Miscanthus × giganteus – simulace s časově rozloženým investičním nákladem.
-
-    Časová struktura (1-indexed jako v textu DP, mapováno na cf[X]):
-      ROK 0 = cf[0]   – příprava pozemku (200 EUR/ha)
-      ROK 1 = cf[1]   – sadba + mech. výsadba + údržba 1. roku
-                        (riziko selhání plantáže)
-      ROK 2 = cf[2]   – údržba 2. roku
-      ROK 3..(years-1) = produkce: výnos × cena − roční údržba − sklizeň
-      ROK (years-1)   – navíc náklady na likvidaci plantáže (orba)
-
-    Roční náklady (daň z pozemku, pachtovné) se účtují ve všech letech.
-    """
     years = int(years)
 
     # ---- Stochastické realizace ------------------------------------------
     y_max_sim = np.clip(np.random.normal(np.mean(yield_bounds),
                         (yield_bounds[1]-yield_bounds[0])/4, n_sim), 0, 60)
 
-    # Korelované šoky pro CELÝ horizont; producci aplikujeme jen na ROK 3+
-    # Meziroční variabilita výnosu Miscanthus = 15 % (Knápek 2024,
-    # konzultace VÚKOZ Průhonice 2026).
     wu, pu = generate_correlated_shocks(years, n_sim, rho=rho)
     wm     = np.clip(norm.ppf(wu, loc=1.0, scale=0.15), 0.5, 1.5)
 
     if catastrophic:
-        # Katastrofický scénář: 10 po sobě jdoucích špatných let (sucho/extrém)
-        # Okno omezeno na produktivní fázi (start ≥ ROK 3 = po setupu) tak,
-        # aby celých 10 let padlo do života plantáže.
         wm = apply_catastrophic_scenario(
             wm, n_sim, years, duration=10, factor_range=(0.40, 0.60),
             start_window=(3, years - 10))
@@ -1017,14 +727,6 @@ def simulate_miscanthus(n_sim, years, params, yield_bounds, subsidy_perc,
         wm[np.random.rand(years, n_sim) < weather_prob] *= 0.50
 
     psc = norm.ppf(pu)
-    # Volatilita σ_P = 20 EUR/t DM pro Miscanthus – analogicky odvozeno přes
-    # konzervativní přirážku 1,20 × σ_SRC nad empirickou hodnotou pro SRC
-    # (Kristöfel et al. 2014, Biomass and Bioenergy 65: 112–124, GARCH analýza
-    # rakouských dat: agricultural biomass má až 7× vyšší volatilitu než
-    # roundwood; volíme dolní mez rozsahu jako konzervativní odhad).
-    # σ_SRC^DM = 16,6 EUR/t DM (z OU vzorce; viz simulate_src).
-    # Pro Miscanthus: 1,20 × 16,6 ≈ 20 EUR/t DM.
-    # Detail v sekci 3.5.2 DP. σ_P^M je v citlivostní analýze (sekce 3.8.2).
     prices = ou_price_process(
         years, n_sim,
         p0=params["prodejni_cena_start"],
@@ -1033,13 +735,6 @@ def simulate_miscanthus(n_sim, years, params, yield_bounds, subsidy_perc,
         correlated_noise=psc, clip_lo=55, clip_hi=200,
     )
 
-    # Růstová křivka dle Weger 2021 pokrývá ROK 1..25 (profile[0..24]):
-    #   profile[0] = 0.00 (ROK 1 = výsadba, žádný harvest)
-    #   profile[1] = 0.03 (ROK 2 = drobný early biomass ~3 % peaku)
-    #   profile[2] = 0.16 (ROK 3 = první komerční sklizeň)
-    #   profile[3..] = ramp-up + plateau + úpadek
-    # CAPEX zůstává v ROK 0–2 (n_setup_capex = 3); drobný výnos v ROK 2
-    # se řeší zvlášť níže (kombinace CAPEX + tržby).
     n_setup_capex = 3                            # ROK 0, 1, 2 = CAPEX fáze
     n_prod        = max(0, years - n_setup_capex)
     yields        = np.zeros((years, n_sim))
@@ -1064,8 +759,6 @@ def simulate_miscanthus(n_sim, years, params, yield_bounds, subsidy_perc,
 
     # ---- Cash flow ------------------------------------------------------
     cf    = np.zeros((years, n_sim))
-    # Nákladová trajektorie (kladné hodnoty = výdaje), souběžně s cf
-    # Rozkládá se na 3 kategorie pro grafický rozklad:
     costs_setup   = np.zeros((years, n_sim))   # CAPEX, sadba, výsadba, příprava
     costs_oper    = np.zeros((years, n_sim))   # údržba + sklizeň + fixní (daň + pacht)
     costs_liquid  = np.zeros((years, n_sim))   # likvidace plantáže
@@ -1078,9 +771,6 @@ def simulate_miscanthus(n_sim, years, params, yield_bounds, subsidy_perc,
     costs_setup[0, :] = params["prep_pozemku"]
     costs_oper[0, :]  = fixed_yearly
 
-    # ROK 1: sadba + výsadba + údržba 1. roku (= polovina udrzba_1_2_rok)
-    # Sadební materiál i mechanizovaná výsadba se škálují lineárně s hustotou výsadby
-    # (jednotná modelová formule pro obě plodiny — viz § 3.X DP).
     sadebni_material = params["hustota_vysadby"] * params["cena_sadby_ks"]
     mech_vysadba     = params["hustota_vysadby"] * params["cena_vysadby_ks"]
     udrzba_y12_half  = params["udrzba_1_2_rok"] / 2.0
@@ -1115,14 +805,10 @@ def simulate_miscanthus(n_sim, years, params, yield_bounds, subsidy_perc,
     fail   = np.random.binomial(1, params["riziko_fail"], n_sim)
     renew  = np.random.binomial(1, 0.5, n_sim)
 
-    # Obnova: extra +60 % CAPEX_y1. Dotace se aplikuje POUZE na původní založení,
-    # nikoli na obnovu po selhání (pěstitel nese plné riziko replantáže).
     replant_cost = fail * renew * 0.60 * capex_y1
     cf[1, :] -= replant_cost
     costs_setup[1, :] += replant_cost
 
-    # Opuštění: ROK 0 a ROK 1 jsou sunk costs (zaplaceno před zjištěním selhání).
-    # Od ROK 2 dál žádné CF (žádný příjem, žádné další náklady).
     abandoned = (fail == 1) & (renew == 0)
     if years > 2:
         cf[2:, abandoned] = 0.0
@@ -1138,40 +824,15 @@ def simulate_src(n_sim, years, params, yield_bounds, tech_type, subsidy_perc,
                  weather_prob=0.05, rho=0.0, drift=0.010,
                  cost_escalation=0.02, pachtovne=0.0,
                  soil_quality="Průměrná", catastrophic=False, sigma_P=16.6):
-    """
-    SRC vrba – simulace s časově rozloženým investičním nákladem a 3-letou likvidací.
-
-    Časová struktura (mapováno na cf[X]):
-      ROK 0  – příprava pozemku (230 EUR/ha)
-      ROK 1  – sadba + mech. výsadba + údržba 1. roku (riziko selhání)
-      ROK 2  – údržba 2. roku
-      ROK 3..4 – jen roční údržba (60 EUR/ha), žádná sklizeň
-      ROK 5, 8, 11, 14, 17, 20, 23, 26 – sklizeň + údržba
-      ROK 27, 28 – likvidace (mulčování / sečení), bez výnosu, bez údržby
-      ROK 29 – konečná orba
-
-    Likvidace celkem 620 EUR/ha rozdělena ≈ 189 + 189 + 240 v ROK 27/28/29.
-    Roční fixní náklady (daň + pachtovné) se účtují v letech 0..(years-1)
-    s výjimkou likvidačních let (27, 28), kde se předpokládá, že na pozemku
-    jen probíhá rozklad a samostatný náklad na nájem je již zahrnut v "likvidace".
-    """
     years = int(years)
 
     y_max_sim = np.clip(np.random.normal(np.mean(yield_bounds),
                         (yield_bounds[1]-yield_bounds[0])/4, n_sim), 0, 40)
 
-    # Korelované šoky pro celý horizont
-    # Meziroční variabilita výnosu SRC vrby = 10 % (Knápek 2024,
-    # konzultace VÚKOZ Průhonice 2026; nižší než Miscanthus díky
-    # robustnějšímu kořenovému systému dřevin).
     wu, pu = generate_correlated_shocks(years, n_sim, rho=rho)
     wm     = np.clip(norm.ppf(wu, loc=1.0, scale=0.10), 0.5, 1.5)
 
     if catastrophic:
-        # Katastrofický scénář: 10 po sobě jdoucích špatných let (sucho/extrém)
-        # Okno omezeno na produktivní fázi: start ≥ ROK 3 (po setupu) a
-        # zároveň konec ≤ ROK (years − 4) tak, aby celých 10 let padlo
-        # mimo 3 likvidační roky (poslední 3 roky horizontu).
         n_liq = 3
         wm = apply_catastrophic_scenario(
             wm, n_sim, years, duration=10, factor_range=(0.40, 0.60),
@@ -1182,16 +843,6 @@ def simulate_src(n_sim, years, params, yield_bounds, tech_type, subsidy_perc,
 
     # OU cenový proces přes celý horizont (využíváme jen ve sklizňových letech)
     psc = norm.ppf(pu)
-    # Volatilita σ_P = 16,6 EUR/t DM pro SRC vrbu – empiricky odvozeno z 21
-    # čtvrtletí ČSÚ palivového dříví VI. třídy (2019Q1–2025Q1):
-    #   σ_eq^wet ≈ 18,8 EUR/t mokré (mean 92,5 EUR/t, palivové dříví ~20 % vlhkosti)
-    # Přepočet na DM basis (vlhkost ~20 %):
-    #   σ_eq^DM = 18,8 / 0,80 ≈ 23,5 EUR/t DM
-    # Striktně z OU vzorce: σ_P^DM = √(2θ · σ²_eq) = √(0,5 · 23,5²) ≈ 16,6 EUR/t DM
-    # Cross-check (1. diference, DM basis): 14 / 0,80 ≈ 17,5 EUR/t DM
-    # V modelu volíme striktní hodnotu 16,6 (formula-derived) jako referenční;
-    # cross-check ji přibližně potvrzuje.
-    # Detail v sekci 3.5.2 DP.
     prices = ou_price_process(
         years, n_sim,
         p0=params["prodejni_cena_start"],
@@ -1205,8 +856,6 @@ def simulate_src(n_sim, years, params, yield_bounds, tech_type, subsidy_perc,
     udrzba_t   = params["udrzba_rocni"]      * esc_factor
     sklizen_t  = params["sklizen_per_tuna"]  * esc_factor
 
-    # ---- Aktivní růst pouze v letech 3 až (years-4) -----------------------
-    # ROK 0,1,2 = setup (žádný růst), ROK (years-3),(years-2),(years-1) = likvidace
     n_setup = 3
     n_liq   = 3                                  # ROK 27, 28, 29 pro zivotnost=30
     n_growth = max(0, years - n_setup - n_liq)
@@ -1221,8 +870,6 @@ def simulate_src(n_sim, years, params, yield_bounds, tech_type, subsidy_perc,
             * wm[n_setup:n_setup + n_growth, :]
         )
 
-    # ---- Sklizňové roky (1-indexed v textu DP, 0-indexed v cf) -----------
-    # Sklizňové ROKy: 5, 8, 11, 14, 17, 20, 23, 26 → cf indexy 5, 8, ..., 26
     harvest_years = {y for y in range(5, years - n_liq, 3)}
 
     # Akumulace mezi sklizněmi (jen z let aktivního růstu)
@@ -1251,8 +898,6 @@ def simulate_src(n_sim, years, params, yield_bounds, tech_type, subsidy_perc,
     # ROK 1: sadba + výsadba + údržba 1. roku + fixní
     sadebni_material = params["hustota_vysadby"] * params["cena_sadby_ks"]
     udrzba_y12_half  = params["udrzba_1_2_rok"] / 2.0
-    # mech_vysadba se počítá automaticky (hustota × cena výsadby/ks);
-    # fallback zajišťuje funkčnost i pro params z DEFAULT_COSTS (compare, diverzifikace)
     mech_vysadba     = params.get("mech_vysadba",
                                   params["hustota_vysadby"] * params["cena_vysadby_ks"])
     capex_y1_base    = sadebni_material + mech_vysadba + udrzba_y12_half
@@ -1276,8 +921,6 @@ def simulate_src(n_sim, years, params, yield_bounds, tech_type, subsidy_perc,
             cf[t, :] += v * prices[t, :] - v * sklizen_t[t]
             costs_oper[t, :] += v * sklizen_t[t]
 
-    # Likvidační roky 27, 28, 29 (pro zivotnost=30)
-    # Podíly: 189/618 ≈ 0,306; 189/618 ≈ 0,306; 240/618 ≈ 0,388
     if years >= n_setup + n_liq:
         liq_total  = params["likvidace"]
         liq_shares = (189.0 / 618.0, 189.0 / 618.0, 240.0 / 618.0)
@@ -1290,8 +933,6 @@ def simulate_src(n_sim, years, params, yield_bounds, tech_type, subsidy_perc,
     fail   = np.random.binomial(1, params["riziko_fail"], n_sim)
     renew  = np.random.binomial(1, 0.5, n_sim)
 
-    # Obnova: extra +60 % CAPEX_y1. Dotace se aplikuje POUZE na původní založení,
-    # nikoli na obnovu po selhání (pěstitel nese plné riziko replantáže).
     replant_cost = fail * renew * 0.60 * capex_y1
     cf[1, :] -= replant_cost
     costs_setup[1, :] += replant_cost
@@ -1342,7 +983,6 @@ DIVERSIFY_STEP_PCT = 2                                  # poměr po 2 % → 51 m
 
 
 def _scenario_metrics(cf_total, years, discount_rate):
-    """Z matice CF (years × n_sim) na jeden scénář spočítá NPV a EAA."""
     if discount_rate > 0:
         df = (1 + discount_rate) ** -np.arange(years)
         npv = np.sum(cf_total * df[:, np.newaxis], axis=0)
@@ -1359,19 +999,6 @@ def run_diversification(misc_params, misc_y_bounds,
                          cost_escalation=0.02, pachtovne=0.0,
                          step_pct=DIVERSIFY_STEP_PCT,
                          soil_quality="Průměrná"):
-    """
-    Pro 51 poměrů Miscanthus:SRC (krok 2 %) spočítá distribuci kombinovaného
-    portfolia a vrátí všechny metriky pro každý poměr.
-
-    DETERMINISTICKÝ přístup: CF se generuje pouze JEDNOU (jeden seed pro M,
-    jeden pro SRC), pak se v cyklu pouze deterministicky kombinují podle
-    váhy w_M. To zajišťuje, že:
-      - μ portfolia je lineární kombinací μ_M a μ_S (matematicky korektní)
-      - CVaR/VaR portfolia jsou stabilní a reprodukovatelné napříč běhy
-      - Optimum diverzifikace je matematicky správné, nikoli artefakt MC šumu
-
-    Plocha se rozdělí: area_M = total_area × pct_M, area_S = total_area × (1-pct_M).
-    """
     misc_years = int(misc_params["zivotnost"])
     src_years  = int(src_params["zivotnost"])
 
@@ -1379,10 +1006,6 @@ def run_diversification(misc_params, misc_y_bounds,
     out = {"pct_misc": pct_grid.tolist(),
            "profit": [], "eaa": [], "var": [], "cvar": [], "std": []}
 
-    # === Generuj CF JEDNOU mimo cyklus (per ha) ===
-    # STEJNÝ seed pro M i SRC → fyzicky správné portfolio na jednom poli:
-    # obě plodiny "vidí" stejné makro počasí, ceny i klimatický stres.
-    # Tím vzniká realistická korelace ρ ≈ 0.4–0.7 mezi plodinami.
     SHARED_SEED = 1_000_003
     np.random.seed(SHARED_SEED)
     cf_m_perha, _, _, _ = simulate_miscanthus(
@@ -1434,11 +1057,6 @@ def run_diversification(misc_params, misc_y_bounds,
 
 
 def find_optimum(div_results, metric_key):
-    """
-    Najde index optima dle metriky:
-      - profit, eaa, var, cvar → maximalizujeme (pro VaR/CVaR = nejméně záporné)
-      - std → minimalizujeme (nižší volatilita CF = lepší diverzifikace)
-    """
     arr = np.array(div_results[metric_key])
     if metric_key == "std":
         idx = int(np.argmin(arr))
@@ -1516,7 +1134,6 @@ def render_recap_table(summary_data: list, T: dict, lang: str = "cs") -> str:
   </table>
 </div>
 """
-
 
 
 # ===========================================================================
@@ -1674,7 +1291,6 @@ h3 { color: #1B2733; margin-top: 1.2rem; }
 
 
 def step_header(num, title, subtitle=""):
-    """Vykreslí číslovaný krok ve stylu 'badge + nadpis'."""
     sub_html = f"<div class='step-sub'>{subtitle}</div>" if subtitle else ""
     st.markdown(
         f"<div><span class='step-badge'>{num}</span>"
@@ -1683,9 +1299,6 @@ def step_header(num, title, subtitle=""):
     )
 
 
-# ---------------------------------------------------------------------------
-# BPEJ TEXTY (přidány inline – nejsou v JSON kvůli dynamickému obsahu)
-# ---------------------------------------------------------------------------
 BPEJ_STRINGS = {
     "cs": {
         "bpej_spinner":     "Stahuji data o bonitě půdy (BPEJ)...",
@@ -1824,12 +1437,16 @@ with st.container(border=True):
 
     if bpej_src == "BPEJ/vumop" and bpej_fert:
         bpej_fmt     = f"{bpej_code[0]}.{bpej_code[1:3]}.{bpej_code[3:]}" if bpej_code else ""
-        bpej_value   = f"{bpej_fert}  ({bpej_fmt})" if bpej_fmt else bpej_fert
-        bpej_caption = BS["bpej_metric_cap_ok"]
+        # Mapování BPEJ úrodnosti na 4 kategorie kvality půdy (shodné s ručním výběrem)
         _bpej_to_soil = {"Velmi úrodná": "Optimální", "Úrodná": "Průměrná", "Neúrodná": "Neúrodná"}
         _mapped = _bpej_to_soil.get(bpej_fert)
         if _mapped and _mapped in SOIL_KEYS:
             st.session_state["bpej_soil_key"] = _mapped
+            _soil_label = T["soil_opts"][SOIL_KEYS.index(_mapped)]
+        else:
+            _soil_label = bpej_fert
+        bpej_value   = f"{_soil_label}  ({bpej_fmt})" if bpej_fmt else _soil_label
+        bpej_caption = BS["bpej_metric_cap_ok"]
     elif bpej_src == "mimo_CR":
         bpej_value, bpej_caption = BS["bpej_metric_na"], BS["bpej_metric_cap_out"]
     elif bpej_src == "chyba":
@@ -1948,7 +1565,7 @@ with st.container(border=True):
         land_options   = T.get("land_own_opts",
                                 ["🏡 Vlastní pozemek", "🤝 Pronajatý pozemek"])
         land_choice = st.radio(land_own_label, options=land_options,
-                                index=0, horizontal=True, key="land_own_radio")
+                                index=1, horizontal=True, key="land_own_radio")
     with pacht_col:
         is_rented = (land_choice == land_options[1])
         if is_rented:
@@ -1976,7 +1593,6 @@ show_src  = "SRC Vrba"    in plodiny
 
 
 def _render_crop_costs(crop_label, crop_key, color_dark, color_main):
-    """Vykreslí 4 sekce nákladů pro plodinu a vrátí dict s parametry."""
     defaults = DEFAULT_COSTS[crop_label]
     p = {}
     is_misc = (crop_key == "M")
@@ -2156,8 +1772,6 @@ with st.container(border=True):
 
     sa_selected = []
 
-    # Rozdělit VŠECHNY parametry do řádků po 5 (jinak by se poslední
-    # parametry — eskalace ceny g, eskalace nákladů e_o, sigma_P — nezobrazily)
     for row_start in range(0, len(sa_all_keys), 5):
         row_keys = sa_all_keys[row_start:row_start + 5]
         sa_cols = st.columns(5)
@@ -2237,14 +1851,8 @@ if run_clicked:
             avg_yearly_std = float(np.mean(np.std(cf_total, axis=0)))
             cum_cf = np.cumsum(cf_total, axis=0)
             pb_yrs = np.argmax(cum_cf > 0, axis=0)
-            # KONVENCE: payback_prob = P(NPV > 0) — projekt skončí kladným
-            # finálním kumulativním CF (po likvidaci). Toto je v souladu
-            # s kapitolou 4 práce. Pouze "cumsum > 0 kdykoliv" by bylo zavádějící
-            # pro SRC (rok ~17 dočasně >0, pak likvidace stáhne zpět).
             npv_pos_mask = total_profits > 0
             payback_prob = float(npv_pos_mask.mean())
-            # Doba návratnosti: počítáme jen pro úspěšné scénáře (NPV > 0)
-            # — ostatní by zkreslovaly průměr (vrátit se a zase ztratit ≠ návratnost).
             succ_pb = pb_yrs[(pb_yrs > 0) & npv_pos_mask]
             avg_payback  = float(np.mean(succ_pb)+1) if len(succ_pb) > 0 else float("nan")
             total_eaas = equivalent_annual_annuity(total_profits, data["years"], r)
@@ -2324,25 +1932,11 @@ sim_area    = sim_meta.get("area", plocha_ha)
 
 
 def _placeholder(msg_cs=None, msg_en=None):
-    # Backward-compatible signature; new code passes no args and uses
-    # the translated placeholder string.
     msg = T["placeholder_run_sim"]
     st.info("👆 " + msg)
 
 
 def generate_excel_export(sim_results, sim_meta, sim_summary, sim_area):
-    """
-    Sestaví kompletní Excel report ze simulace (7 sheetů) jako BytesIO.
-
-    Sheety:
-      1_Souhrn         – KPI per plodina (NPV, EAA, VaR, CVaR, σ, P>0, payback)
-      2_Konfigurace    – vstupní parametry (sim_meta + per-crop parametry)
-      3_Roční výnosy   – year × percentily (mean, p5, p25, p50, p75, p95)
-      4_Roční ceny     – year × percentily (OU proces)
-      5_Roční náklady  – year × kategorie (setup, oper, liquid, total)
-      6_Cash flow      – year × percentily (s plochou)
-      7_NPV distribuce – histogram NPV (50 binů)
-    """
     from io import BytesIO
     import pandas as pd
 
@@ -2382,8 +1976,6 @@ def generate_excel_export(sim_results, sim_meta, sim_summary, sim_area):
         )
         df_cfg.to_excel(wr, sheet_name=T["excel_sheet_konfig"], index=False)
 
-        # Helper: percentily transponované — řádky = (Plodina × Statistika),
-        # sloupce = roky (Rok 0, Rok 1, ..., Rok N-1)
         def percentile_wide_df(arr, plodina_label, prefix=""):
             n_yrs = arr.shape[0]
             year_cols = [f"{T['excel_year_prefix']} {i}" for i in range(n_yrs)]
@@ -2419,8 +2011,6 @@ def generate_excel_export(sim_results, sim_meta, sim_summary, sim_area):
             pd.concat(rows, ignore_index=True).to_excel(
                 wr, sheet_name=T["excel_sheet_ceny"], index=False)
 
-        # --- Sheet 5: Roční náklady (years jako sloupce) ---
-        # Řádky: Plodina × Kategorie (Setup/CAPEX, Provoz, Likvidace, Celkem)
         rows = []
         for plodina, data in sim_results.items():
             if "costs" not in data:
@@ -2737,8 +2327,6 @@ with tab_yields:
                 fmt_eur_cs(float(np.mean(np.sum(c["setup"][:3] + c["oper"][:3], axis=0)))),
             )
 
-        # SRC learning chart – pokud SRC v simulaci, ukáže Weger 2025 harvest
-        # profil pro vybranou kvalitu půdy (8 sklizní v rámci životnosti plantáže)
         src_data_lc = next((d for d in sim_results.values() if d["type"] == "src"), None)
         if src_data_lc:
             st.subheader("🔄 " + T["learn_header"].lstrip("🔄 "))
@@ -3086,14 +2674,6 @@ COMPARE_T = {
 def _run_compare_scenarios(zone_label, area_ha, n_sim_compare, subsidy_pct,
                             discount_pct, rho_input, drift_pct, cost_esc_pct,
                             pachtovne_v, editable_costs):
-    """
-    Spustí 8 simulací (4 kvality půdy × 2 plodiny) pro aktuální zónu
-    a vrátí seznam dictů s metrikami pro každou kombinaci.
-
-    Pokud uživatel nemá v sekci 2 vybranou některou plodinu (chybí klíč
-    v editable_costs), použije se DEFAULT_COSTS jako fallback. Tabulka
-    Srovnání kvalit je nezávislá na běžné simulaci a vždy ukazuje obě plodiny.
-    """
     from copy import deepcopy
     soil_keys = ["Optimální", "Průměrná", "Neúrodná", "Nevhodná"]
     crop_keys = ["M_giganteus", "SRC Vrba"]
@@ -3153,8 +2733,6 @@ def _run_compare_scenarios(zone_label, area_ha, n_sim_compare, subsidy_pct,
             succ_pb = pb_yrs[pb_yrs > 0]
             payback_prob = float(len(succ_pb)/n_sim_compare) if n_sim_compare > 0 else 0.0
             mean_npv     = float(np.mean(npvs))
-            # Yearly std CF — průměrná ročně-roční volatilita cash flow
-            # (konzistentní s metrics["std"] v hlavní simulaci)
             std_yearly   = float(np.mean(np.std(cf_total, axis=0)))
             eaa_mean     = float(np.mean(equivalent_annual_annuity(npvs, years_p, r)))
             p_pos        = float((npvs > 0).mean())
@@ -3184,15 +2762,6 @@ def _render_compare_fragment(detected_zone_key, detected_zone_label,
                              plocha_ha, n_sim, subsidy_pct, discount_pct,
                              rho_input, drift_pct, cost_esc_pct, pachtovne,
                              editable_costs, lang_code, T, COMPARE_T):
-    """Izolovaný fragment srovnání kvalit půdy.
-
-    Fragment zabraňuje resetu st.tabs() na první záložku po kliknutí na
-    tlačítko (Streamlit ≥ 1.53). Výsledky se ukládají do session_state
-    (compare_results), takže přežijí rerun fragmentu.
-
-    Lookupy do YIELD_DATA jdou přes KANONICKÝ český klíč detected_zone_key,
-    zatímco zobrazení uživateli používá přeložený detected_zone_label.
-    """
     st.subheader("📈 " + COMPARE_T["header"])
     st.markdown(COMPARE_T["desc"])
 
@@ -3216,9 +2785,6 @@ def _render_compare_fragment(detected_zone_key, detected_zone_label,
     if cmp_res:
         import pandas as pd
 
-        # Helper: podbarvení řádku dle plodiny. Testuje INTERNÍ klíč i obě
-        # jazykové display varianty, aby fungoval nezávisle na tom, zda se
-        # sloupec přemapuje na display label před nebo po stylování.
         def _highlight_crop(row):
             crop_val = row["Plodina"]
             if crop_val in ("Miscanthus", "M_giganteus"):
@@ -3401,8 +2967,6 @@ def _render_compare_fragment(detected_zone_key, detected_zone_label,
         st.markdown("### " + COMPARE_T["table_t"])
         df_cmp = pd.DataFrame(cmp_res)
         df_disp = df_cmp.drop(columns=["Y_min", "Y_max"], errors="ignore").copy()
-        # Přemapuj sloupec Plodina na zobrazený label (interní klíč zůstává
-        # v df_cmp pro Excel export níže)
         if "Plodina" in df_disp.columns:
             df_disp["Plodina"] = df_disp["Plodina"].apply(
                 lambda v: crop_display(v, lang_code))
@@ -3458,12 +3022,12 @@ DIV_T = {
                        "std":    "Minimalizovat směrodatnou odchylku CF (nejstabilnější)"},
         "btn":       "Najít optimální poměr",
         "spinner":   "Hledám optimum napříč 51 poměry…",
-        "warn_crops":"Pro diverzifikaci zaškrtněte v sekci 2 **obě plodiny** (Miscanthus + SRC).",
+        "warn_crops":"Pro diverzifikaci zaškrtněte v sekci 2 **obě plodiny** (Miscanthus + RRD vrba).",
         "inputs_h":  "Vstupy použité pro výpočet",
         "opt_kpi":   "Optimální poměr",
         "metric_val":"Hodnota metriky v optimu",
         "vs_pure_m": "vs. čistě Miscanthus",
-        "vs_pure_s": "vs. čistě SRC",
+        "vs_pure_s": "vs. čistě RRD vrba",
         "field":     "Vizualizace pole (rozdělení plochy)",
         "frontier":  "Křivka napříč všemi poměry (efficient frontier)",
         "x_axis":    "% Miscanthus v mixu",
@@ -3500,14 +3064,6 @@ def _render_diversification_fragment(detected_zone_key, soil_key, plocha_ha,
                                      cost_esc_pct, cost_escalation_rate,
                                      pachtovne, editable_costs, lang_code,
                                      T, DIV_T):
-    """Izolovaný fragment diverzifikačního optimalizátoru.
-
-    Fragment zabraňuje resetu st.tabs() po kliknutí na tlačítko výpočtu
-    (Streamlit ≥ 1.53). Výsledky se ukládají do session_state
-    (diverzifikace_results), aby přežily rerun fragmentu (např. při změně
-    výběru metrik). Lookupy do YIELD_DATA jdou přes kanonický klíč
-    detected_zone_key.
-    """
     st.markdown(f"### {DIV_T['header']}")
     st.markdown(DIV_T["desc"])
 
@@ -3644,7 +3200,7 @@ def _render_diversification_fragment(detected_zone_key, soil_key, plocha_ha,
                     f"</div>", unsafe_allow_html=True)
 
                 dk1, dk2, dk3, dk4 = st.columns(4)
-                dk1.metric(DIV_T["opt_kpi"], f"{opt_pct_m} % M / {opt_pct_s} % SRC")
+                dk1.metric(DIV_T["opt_kpi"], f"{opt_pct_m} % M / {opt_pct_s} % {'RRD' if lang_code == 'cs' else 'SRC'}")
                 dk2.metric(DIV_T["metric_val"], fmt_eur_cs(opt_val))
                 dk3.metric(DIV_T["vs_pure_m"],
                            f"{'+' if (opt_val-pure_m_val)>=0 else '−'}{fmt_eur_cs(abs(opt_val-pure_m_val))}",
